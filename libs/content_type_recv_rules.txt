@@ -1,0 +1,5 @@
+#text/html#
+#application/msword#
+#application/pdf#
+#application/x\-xls#
+#application/octet-stream#

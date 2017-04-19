@@ -1,0 +1,1 @@
+#\.(jpg|gif|png|pdf|jpeg|css|js|mp3|mp4|flv|swf|svg|bmp)# i
