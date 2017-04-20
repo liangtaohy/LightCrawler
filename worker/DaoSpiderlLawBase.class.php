@@ -19,6 +19,7 @@ class DaoSpiderlLawBase extends DaoBase
     const TYPE_XLS = 6;
     const TYPE_XLSX = 7;
     const TYPE_PDF  = 8;
+    const TYPE_HTML_FRAGMENT = 9;
 
     protected $_table_name = self::TABLE_NAME;
 

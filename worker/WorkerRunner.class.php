@@ -14,11 +14,13 @@
 
 $ext = ".class.php";
 
-$params = getopt('t:hd');
+$params = getopt('t:hds:');
 
 $base = dirname(__FILE__);
 
-$targetClass = isset($params['t']) && !empty($params['t']) ? $params['t'] : '';
+$targetClass = isset($params['t']) && !empty($params['t']) ? trim($params['t']) : '';
+
+$seed = isset($params['s']) && !empty($params['s']) ? trim($params['s']) : '';
 
 $debug = isset($params['d']) ? true : false;
 
@@ -58,12 +60,17 @@ if (gsettings()->debug == true) {
 
 $spider = new $targetClass();
 
-echo "starting url: " . $targetClass::$SeedConf[0] . PHP_EOL;
-$spider->setFeed($targetClass::$SeedConf[0]);
+if (!empty($seed)) {
+    echo "starting url: " . $seed . PHP_EOL;
+    $spider->setFeed($seed);
+} else {
+    echo "starting url: " . $targetClass::$SeedConf[0] . PHP_EOL;
+    $spider->setFeed($targetClass::$SeedConf[0]);
 
-for ($i=1;$i<count($targetClass::$SeedConf); $i++) {
-    echo "starting urls: " . $targetClass::$SeedConf[$i] . PHP_EOL;
-    $spider->addStartingUrls($targetClass::$SeedConf[$i]);
+    for ($i=1;$i<count($targetClass::$SeedConf); $i++) {
+        echo "starting urls: " . $targetClass::$SeedConf[$i] . PHP_EOL;
+        $spider->addStartingUrls($targetClass::$SeedConf[$i]);
+    }
 }
 
 $spider->run();

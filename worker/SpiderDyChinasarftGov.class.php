@@ -51,11 +51,7 @@ class SpiderDyChinasarftGov extends SpiderFrame
 
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
-        $charset = $DocInfo->responseHeader->content_encoding;
         $source = $DocInfo->source;
-        if (!empty($charset)) {
-            $source = '<meta http-equiv="Content-Type" content="text/html; charset=' . $charset . '"/>'. "\n" . $source;
-        }
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
 
@@ -70,7 +66,6 @@ class SpiderDyChinasarftGov extends SpiderFrame
                 $useRawContent = true;
             }
         }
-
 
         if (empty($extract->doc_ori_no)) {
             $x = explode("\n", implode("", array_filter($extract->text)));

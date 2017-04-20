@@ -1,24 +1,20 @@
 <?php
 
 /**
- * http://gkml.saic.gov.cn/2086/2087/list.html
- * 工商管理总局信息公开目录
- *
- * Run:
- * /home/work/php/bin/php -c /home/work/php/etc/php.ini WorkerRunner.class.php -tSpiderGkmlSaicGov
- *
- * Run In Debug Mode:
- * /home/work/php/bin/php -c /home/work/php/etc/php.ini WorkerRunner.class.php -tSpiderGkmlSaicGov -d
- *
- * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/4/18
- * Time: PM6:02
+ * 银监会 - 行政处罚
+ * http://www.cbrc.gov.cn/chinese/home/docViewPage/110002.html - 银监会机关
+ * http://www.cbrc.gov.cn/zhuanti/xzcf/get2and3LevelXZCFDocListDividePage//1.html - 银监局
+ * http://www.cbrc.gov.cn/zhuanti/xzcf/get2and3LevelXZCFDocListDividePage//2.html - 银监分局
+ * User: xlegal
+ * Date: 17/4/20
+ * Time: AM11:29
  */
+
 define("CRAWLER_NAME", md5("spider-dy.sarft.gov"));
 
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderGkmlSaicGov extends SpiderFrame
+class SpiderCbrcChuFa extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -27,13 +23,16 @@ class SpiderGkmlSaicGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://gkml.saic.gov.cn/auto3743/auto3753/200903/t20090309_230838.html",
-        "http://gkml.saic.gov.cn/2086/2087/list.html",
+        "http://www.cbrc.gov.cn/chinese/home/docViewPage/110002.html",
+        "http://www.cbrc.gov.cn/zhuanti/xzcf/get2and3LevelXZCFDocListDividePage//1.html",
+        "http://www.cbrc.gov.cn/zhuanti/xzcf/get2and3LevelXZCFDocListDividePage//2.html",
     );
 
     protected $ContentHandlers = array(
-        "#http://gkml.saic.gov.cn/2086/2087/list([\_0-9]+)?\.html# i" => "handleListPage",
-        "#http://gkml.saic.gov.cn/auto[0-9]+/auto[0-9]+/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
+        "#http://www.cbrc.gov.cn/chinese/home/docViewPage/110002(\.html|\&current=[0-9]+)# i" => "handleListPage",
+        "#http://www.cbrc.gov.cn/zhuanti/xzcf/get2and3LevelXZCFDocListDividePage//1\.html(\?current=[0-9]+)?# i"   => "handleListPage",
+        "#http://www.cbrc.gov.cn/zhuanti/xzcf/get2and3LevelXZCFDocListDividePage//2\.html(\?current=[0-9]+)?# i"    => "handleListPage",
+        "#http://www.cbrc.gov.cn/chinese/home/docView/(xzcf_)?[A-Z0-9]+\.html# i" => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
@@ -45,98 +44,48 @@ class SpiderGkmlSaicGov extends SpiderFrame
         parent::__construct();
     }
 
-    public function computePages(PHPCrawlerDocumentInfo $DocInfo)
-    {
-        $totalPatterns = array(
-            "#var m_nRecordCount = [\"]?([0-9]+)[\"]?;# i",
-        );
-
-        $pagesizePatterns = array(
-            "#var m_nPageSize = [\"]?([0-9]+)[\"]?;# i",
-        );
-
-        $total = 0;
-        $pagesize = 0;
-
-        foreach ($totalPatterns as $totalPattern) {
-            $result = preg_match($totalPattern, $DocInfo->source, $matches);
-            if (!empty($result) && !empty($matches) && is_array($matches)) {
-                $total = intval($matches[1]);
-                break;
-            }
-            unset($matches);
-        }
-
-        if (empty($total)) {
-            echo "FATAL get total page failed: " . $DocInfo->url . PHP_EOL;
-            return true;
-        }
-
-        unset($result);
-        unset($matches);
-
-        foreach ($pagesizePatterns as $pagesizePattern) {
-            $result = preg_match($pagesizePattern, $DocInfo->source, $matches);
-            if (!empty($result) && !empty($matches) && is_array($matches)) {
-                $pagesize = intval($matches[1]);
-                break;
-            }
-            unset($matches);
-        }
-
-        if (empty($pagesize)) {
-            echo "FATAL get pagesize failed: " . $DocInfo->url . PHP_EOL;
-            return array(
-                'total' => $total,
-            );
-        }
-
-        $res = array(
-            'total' => $total,
-        );
-        $total = ceil($total / $pagesize);
-        $res['pages'] = $total;
-        $res['pagesize'] = $pagesize;
-
-        return $res;
-    }
-
     /**
      * @param PHPCrawlerDocumentInfo $DocInfo
      * @return array
      */
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
-        $pager = $this->computePages($DocInfo);
-        $sPageName = "list";
-        $sPageExt = "html";
-
-        $p = strrpos($DocInfo->url, "/");
-        $prefix = substr($DocInfo->url, 0, $p + 1);
-
-        $pages = array();
-        for ($i = 1; $i <= $pager['pages']; $i++)
-        {
-            if($i == 1){
-                $url = $sPageName . "." . $sPageExt;
-            }else{
-                $url = $sPageName . "_" . ($i-1) . "." . $sPageExt;
-            }
-            $pages[] = $prefix . $url;
-        }
-
-        return $pages;
+        return array();
     }
 
+    /**
+     * @param PHPCrawlerDocumentInfo $DocInfo
+     * @return bool|XlegalLawContentRecord
+     */
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
+        $charset = "utf-8";
         $source = $DocInfo->source;
+        if (!empty($charset)) {
+            $source = '<meta http-equiv="Content-Type" content="text/html; charset=' . $charset . '"/>'. "\n" . $source;
+        }
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
-        $extract->skip_td_childs = true;
+
         $extract->parse();
 
         $extract->parseSummary($extract->text);
+
+        $doc = $extract->extractor->document();
+
+        if (empty($doc)) {
+            echo "content is null: " . $DocInfo->url . PHP_EOL;
+            return true;
+        }
+
+        $n_cent = $doc->query("//div[@class='Section1']|//div[@class='WordSection1']|//div[@class='Section0']");
+
+        $htmlFragment = '';
+        if ($n_cent instanceof DOMNodeList && !empty($n_cent)) {
+            $n_cent = $n_cent->item(0);
+            $doc->formatOutput = true;
+            $htmlFragment = $doc->document->saveHTML($n_cent);
+        }
 
         $content = $extract->getContent();
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
@@ -144,7 +93,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
         $record->doc_id = md5($c);
         $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
         $record->author = $extract->author;
-        $record->content = $content;
+        $record->content = !empty($htmlFragment) ? base64_encode(gzdeflate($htmlFragment, 9)) : $content;
         $record->doc_ori_no = $extract->doc_ori_no;
         $record->publish_time = $extract->publish_time;
         $record->t_valid = $extract->t_valid;
@@ -182,7 +131,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
         }
 
 
-        $record->type = DaoSpiderlLawBase::TYPE_TXT;
+        $record->type = !empty($htmlFragment) ? DaoSpiderlLawBase::TYPE_HTML_FRAGMENT : DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;
         $record->url = $extract->baseurl;
         $record->url_md5 = md5($extract->url);
@@ -192,6 +141,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
             $index_blocks = $extract->indexBlock($extract->text);
             echo implode("\n", $index_blocks) . PHP_EOL;
             var_dump($record);
+            echo gzinflate(base64_decode($record->content)) . PHP_EOL;
             return false;
         }
         echo "insert data: " . $record->doc_id . PHP_EOL;

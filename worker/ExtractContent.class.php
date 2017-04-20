@@ -23,7 +23,10 @@ class ExtractContent
 
     public $skip_td_childs = false;
 
-    private $extractor;
+    /**
+     * @var Extractor
+     */
+    public $extractor;
 
     public $charset = '';
     public $url = "";
