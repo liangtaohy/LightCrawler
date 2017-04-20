@@ -28,11 +28,11 @@ class SpiderGkmlSaicGov extends SpiderFrame
      */
     static $SeedConf = array(
         "http://gkml.saic.gov.cn/auto3743/auto3753/200903/t20090309_230838.html",
-        //"http://gkml.saic.gov.cn/2086/2087/list.html",
+        "http://gkml.saic.gov.cn/2086/2087/list.html",
     );
 
     protected $ContentHandlers = array(
-        //"#http://gkml.saic.gov.cn/2086/2087/list([\_0-9]+)?\.html# i" => "handleListPage",
+        "#http://gkml.saic.gov.cn/2086/2087/list([\_0-9]+)?\.html# i" => "handleListPage",
         "#http://gkml.saic.gov.cn/auto[0-9]+/auto[0-9]+/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
@@ -170,7 +170,16 @@ class SpiderGkmlSaicGov extends SpiderFrame
 
             if (isset($res['repeated']) && !empty($res['repeated'])) {
                 echo 'data repeated: ' . $DocInfo->url . ', repeated simhash: ' . $res['simhash1'] .PHP_EOL;
-                return false;
+                $flag = 1;
+                if (!empty($record->doc_ori_no)) {
+                    $r = DaoXlegalLawContentRecord::getInstance()->ifDocOriExisted($record);
+                    if (empty($r)) {
+                        $flag = 0;
+                    }
+                }
+
+                if ($flag)
+                    return false;
             }
 
             $record->simhash = $simhash;
@@ -189,6 +198,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
             var_dump($record);
             return false;
         }
+        echo "insert data: " . $record->doc_id . PHP_EOL;
         return $record;
     }
 }

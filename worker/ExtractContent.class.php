@@ -559,7 +559,7 @@ class ExtractContent
         }
 
         $ratio = $this->pCharacterLen / $this->textCharacterLen;
-
+        echo "ratio: " . $ratio . PHP_EOL;
         if ($ratio >= 0.01) {
             return implode("\n", $this->textP);
         }

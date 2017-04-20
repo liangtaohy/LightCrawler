@@ -249,9 +249,6 @@ class PHPCrawlerMySqlUrlCache extends PHPCrawlerURLCacheBase
         $sql = "INSERT IGNORE INTO urls SET " . implode(",", $vs);
 
         $result = $this->_handle->query($sql);
-        if ($result === false) {
-            echo "Fatal addUrl: " . $sql . PHP_EOL;
-        }
     }
 
     /**
