@@ -25,8 +25,8 @@ class SpiderDeparmentCsrc extends PHPCrawler
      * @var array
      */
     static $SeedConf = array(
-        //"http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2017&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
-        //"http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2016&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
+        "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2017&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
+        "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2016&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
         "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2015&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
         "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2014&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
         "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2013&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",

@@ -45,9 +45,18 @@ class DaoUrlCache extends DaoBase
     /**
      * DaoUrlCache constructor.
      */
-    public function __construct()
+    private function __construct()
     {
         $this->db = DBProxy::getInstance(self::DB_NAME);
+    }
+
+    /**
+     * @param $arrValue
+     * @return bool
+     */
+    public function insert_batch(array $arrValue)
+    {
+        return $this->db->batchInsert($arrValue, $this->_table_prefix . $this->_table_name, true);
     }
 
     /**

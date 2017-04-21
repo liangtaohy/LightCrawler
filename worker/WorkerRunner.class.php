@@ -60,17 +60,21 @@ if (gsettings()->debug == true) {
 
 $spider = new $targetClass();
 
-if (!empty($seed)) {
-    echo "starting url: " . $seed . PHP_EOL;
-    $spider->setFeed($seed);
-} else {
-    echo "starting url: " . $targetClass::$SeedConf[0] . PHP_EOL;
-    $spider->setFeed($targetClass::$SeedConf[0]);
+if (method_exists($targetClass,'setFeed')) {
+    if (!empty($seed)) {
+        echo "starting url: " . $seed . PHP_EOL;
+        $spider->setFeed($seed);
+    } else {
+        echo "starting url: " . $targetClass::$SeedConf[0] . PHP_EOL;
+        $spider->setFeed($targetClass::$SeedConf[0]);
 
-    for ($i=1;$i<count($targetClass::$SeedConf); $i++) {
-        echo "starting urls: " . $targetClass::$SeedConf[$i] . PHP_EOL;
-        $spider->addStartingUrls($targetClass::$SeedConf[$i]);
+        for ($i=1;$i<count($targetClass::$SeedConf); $i++) {
+            echo "starting urls: " . $targetClass::$SeedConf[$i] . PHP_EOL;
+            $spider->addStartingUrls($targetClass::$SeedConf[$i]);
+        }
     }
+} else {
+    echo "no setFeed method, just run method is called" . PHP_EOL;
 }
 
 $spider->run();

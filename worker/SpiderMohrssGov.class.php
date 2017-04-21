@@ -1,24 +1,15 @@
 <?php
 
 /**
- * http://gkml.saic.gov.cn/2086/2087/list.html
- * 工商管理总局信息公开目录
- *
- * Run:
- * /home/work/php/bin/php -c /home/work/php/etc/php.ini WorkerRunner.class.php -tSpiderGkmlSaicGov
- *
- * Run In Debug Mode:
- * /home/work/php/bin/php -c /home/work/php/etc/php.ini WorkerRunner.class.php -tSpiderGkmlSaicGov -d
- *
+ * Created by PhpStorm.
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/4/18
- * Time: PM6:02
+ * Date: 17/4/21
+ * Time: PM1:20
  */
-define("CRAWLER_NAME", md5("spider-dy.sarft.gov"));
-
+define("CRAWLER_NAME", "spider-mohrss.gov.cn");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderGkmlSaicGov extends SpiderFrame
+class SpiderMohrssGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -27,43 +18,25 @@ class SpiderGkmlSaicGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://gkml.saic.gov.cn/2086/2087/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2088/2103/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2088/2104/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2088/2105/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2088/2106/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2088/2107/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2094/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2095/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2096/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2097/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2098/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2099/list.html",
-        "http://www.saic.gov.cn/gkml/2086/2100/list.html",
-        "http://www.saic.gov.cn/zw/wjfb/index.html",
-        "http://www.saic.gov.cn/fw/bsdt/gg/jzzf/index.html",
+        "http://www.mohrss.gov.cn/gkml/216/list.html",
     );
 
     protected $ContentHandlers = array(
-        "#http://gkml.saic.gov.cn/2086/2087/list([\_0-9]+)?\.html# i" => "handleListPage",
-        "#http://www.saic.gov.cn/gkml/[0-9]{4}/[0-9]{4}/[0-9]{4}/list([\_0-9]+)?\.html# i"    => "handleListPage",
-        "#http://www.saic.gov.cn/gkml/[0-9]{4}/[0-9]{4}/list([\_0-9]+)?\.html# i"   => "handleListPage",
-        "#http://www.saic.gov.cn/zw/wjfb/index(_[0-9]+)?.html# i" => "handleListPage",
-        "#http://www.saic.gov.cn/fw/bsdt/gg/jzzf/index(_[0-9]+)?.html# i"   => "handleListPage",
-        "#http://gkml.saic.gov.cn/auto[0-9]+/auto[0-9]+/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
-        "#http://www.saic.gov.cn/gkml/auto[0-9]+/auto[0-9]+/[0-9]+/t[0-9]+_[0-9]+\.html# i"    => "handleDetailPage",
-        //"#/t[0-9]+_[0-9]+\.html# i"  => "handleDetailPage",
+        "#http://www.mohrss.gov.cn/gkml/216/list([_0-9]+)?\.html# i"   => "handleListPage",
+        "#http://www.mohrss.gov.cn/gkml/xxgk/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderDyChinasarftGov constructor.
+     * SpiderNdrcGov constructor.
      */
     public function __construct()
     {
         parent::__construct();
     }
 
+    //var m_nRecordCount = "2278";
+    //var m_nPageSize = 20;
     public function computePages(PHPCrawlerDocumentInfo $DocInfo)
     {
         $totalPatterns = array(
@@ -74,9 +47,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
             "#var m_nPageSize = [\"]?([0-9]+)[\"]?;# i",
         );
 
-        $pagesPatterns = array(
-            "#var countPage = [\"]?[0-9]+[\"]?# i",
-        );
+        $pagesPatterns = array();
 
         $total = 0;
         $pagesize = 0;
@@ -173,6 +144,11 @@ class SpiderGkmlSaicGov extends SpiderFrame
             $pages[] = $prefix . $url;
         }
 
+        if (gsettings()->debug) {
+            var_dump($pages);
+            exit(0);
+        }
+
         return $pages;
     }
 
@@ -181,10 +157,8 @@ class SpiderGkmlSaicGov extends SpiderFrame
         $source = $DocInfo->source;
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
-        $extract->skip_td_childs = true;
-        $extract->parse();
 
-        $extract->parseSummary($extract->text);
+        $extract->parse();
 
         $content = $extract->getContent();
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
@@ -236,9 +210,9 @@ class SpiderGkmlSaicGov extends SpiderFrame
         $record->url_md5 = md5($extract->url);
 
         if (gsettings()->debug) {
-            echo "raw: " . implode("\n", $extract->text) . PHP_EOL;
-            $index_blocks = $extract->indexBlock($extract->text);
-            echo implode("\n", $index_blocks) . PHP_EOL;
+            //echo "raw: " . implode("\n", $extract->text) . PHP_EOL;
+            //$index_blocks = $extract->indexBlock($extract->text);
+            //echo implode("\n", $index_blocks) . PHP_EOL;
             var_dump($record);
             return false;
         }

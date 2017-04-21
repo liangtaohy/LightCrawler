@@ -699,6 +699,24 @@ class ExtractContent
         }
     }
 
+    public function readComments()
+    {
+        $dom = $this->extractor->domDocument();
+
+        $comments = array();
+        if ($dom instanceof DOMDocument) {
+            $remove_childs = array();
+            $this->traverseTree($dom, $remove_childs);
+            if (!empty($remove_childs)) {
+                foreach ($remove_childs as $remove_child) {
+                    $comments[] = $remove_child->nodeValue;
+                }
+            }
+        }
+
+        return $comments;
+    }
+
     public function parse()
     {
         // get raw text
