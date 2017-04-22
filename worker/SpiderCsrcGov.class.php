@@ -74,7 +74,7 @@ class SpiderCsrcGov extends SpiderFrame
     {
         $pager = $this->computePages($DocInfo);
         $sPageName = "index";
-        $sPageExt = "html";
+        $sPageExt = "htm";
 
         $p = strrpos($DocInfo->url, "/");
         $prefix = substr($DocInfo->url, 0, $p + 1);
@@ -128,6 +128,14 @@ class SpiderCsrcGov extends SpiderFrame
             $record->attachment = json_encode($extract->attachments, JSON_UNESCAPED_UNICODE);
         }
 
+        if (mb_strpos($record->title, "处罚决定", 0, "UTF-8") !== false) {
+            $record->doc_ori_no = "证监罚字" . $record->doc_ori_no;
+        }
+
+        if (mb_strpos($record->title, "禁入决定", 0, "UTF-8") !== false) {
+            $record->doc_ori_no = "证监法律字" . $record->doc_ori_no;
+        }
+
         if (empty(gsettings()->debug)) {
             $res = FlaskRestClient::GetInstance()->simHash($c);
 
@@ -137,7 +145,7 @@ class SpiderCsrcGov extends SpiderFrame
             }
 
             if (isset($res['repeated']) && !empty($res['repeated'])) {
-                echo 'data repeated: ' . $DocInfo->url . ', repeated simhash: ' . $res['simhash1'] .PHP_EOL;
+
                 $flag = 1;
                 if (!empty($record->doc_ori_no)) {
                     $r = DaoXlegalLawContentRecord::getInstance()->ifDocOriExisted($record);
@@ -145,7 +153,7 @@ class SpiderCsrcGov extends SpiderFrame
                         $flag = 0;
                     }
                 }
-
+                echo 'data repeated: ' . $DocInfo->url . ', repeated simhash: ' . $res['simhash1'] . 'flag: ' . $flag . ', doc_ori_no' . $record->doc_ori_no . PHP_EOL;
                 if ($flag)
                     return false;
             }

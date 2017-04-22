@@ -30,4 +30,5 @@ define('URL_CACHE_IN_MYSQL', 3); ///< url in mysql cache
 define('UA_DEFAULT', "default");
 define('UA_ANDROID', "android");
 define('UA_IPHONE', "iphone");
+define('UA_CHROME', "chrome");
 /* vim: set expandtab ts=4 sw=4 sts=4 tw=100: */

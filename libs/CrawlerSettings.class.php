@@ -32,7 +32,7 @@ function gsettings()
             "traffic_limit" => 0,
             "cookie_handling_mode" => true,
             "aggressive_link_search" => true,
-            "user_agent" => "default",
+            "user_agent" => UA_CHROME,
             // Retry Limit
             "retry_limit" => 3,
             // Timers
@@ -45,6 +45,7 @@ function gsettings()
             "obey_robots" => false,
             "ua_default" => "PHPCrawl 1.0/lotushy",
             "ua_wap" => "",
+            "ua_chrome" => "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36",
             "debug"=>false,
             "working_space_path"=> "/mnt/open-xdp/spider/data/",
             "storage"=>'file',

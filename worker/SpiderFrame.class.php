@@ -12,7 +12,7 @@ class SpiderFrame extends PHPCrawler
 
     public $storage_root = "/mnt/open-xdp/spider";
 
-    private $raw_data_dir = "/raw_data";
+    protected $raw_data_dir = "/raw_data";
 
     /**
      * @var null
@@ -83,8 +83,10 @@ class SpiderFrame extends PHPCrawler
             parent::setUserAgentString(gsettings()->ua_default);
         } else if (stripos(gsettings()->user_agent, UA_ANDROID) !== false) {
             parent::setUserAgentString(gsettings()->ua_android);
-        } else if (stripos(gsettings()->UserAgent, UA_IPHONE) !== false) {
+        } else if (stripos(gsettings()->user_agent, UA_IPHONE) !== false) {
             parent::setUserAgentString(gsettings()->ua_iphone);
+        } else if (stripos(gsettings()->user_agent, UA_CHROME) !== false) {
+            parent::setUserAgentString(gsettings()->ua_chrome);
         }
 
         parent::requestGzipContent(gsettings()->gzip_encoded_mode);
