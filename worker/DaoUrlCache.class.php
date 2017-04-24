@@ -31,6 +31,23 @@ class DaoUrlCache extends DaoBase
 
     private $db;
 
+    protected $_table_fields = array(
+        self::TABLE_NAME    => array(
+            "priority_level" => 1,
+            "distinct_hash" => 'i',
+            "link_raw" => 'i',
+            "linkcode" => 'i',
+            "linktext" => 'i',
+            "refering_url" => 'i',
+            "url_rebuild" => 'i',
+            "is_redirect_url" => 1,
+            "url_link_depth" => 1,
+            "spider"    => 'i',
+            "ctime" => 1,
+            "mtime" => 1,
+        )
+    );
+
     /**
      * @return DaoUrlCache
      */
@@ -48,6 +65,14 @@ class DaoUrlCache extends DaoBase
     private function __construct()
     {
         $this->db = DBProxy::getInstance(self::DB_NAME);
+    }
+
+    /**
+     * @param $meta
+     */
+    public function insert($meta)
+    {
+        $this->db->insert($meta, $this->_table_prefix . $this->_table_name, TRUE);
     }
 
     /**

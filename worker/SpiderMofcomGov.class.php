@@ -7,7 +7,7 @@
  * Date: 17/4/24
  * Time: AM10:20
  */
-define("CRAWLER_NAME", "spider-mep.gov.cn");
+define("CRAWLER_NAME", "spider-mofcom.gov.cn");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderMofcomGov extends SpiderFrame
