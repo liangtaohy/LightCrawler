@@ -230,8 +230,8 @@ class PHPCrawlerMySqlUrlCache extends PHPCrawlerURLCacheBase
         $value = array("priority_level" => $priority_level,
             "distinct_hash" => $map_key,
             "link_raw" => $UrlDescriptor->link_raw,
-            "linkcode" => $UrlDescriptor->linkcode,
-            "linktext" => $UrlDescriptor->linktext,
+            "linkcode" => mysqli_escape_string($this->_handle, $UrlDescriptor->linkcode),
+            "linktext" => mysqli_escape_string($this->_handle, $UrlDescriptor->linktext),
             "refering_url" => $UrlDescriptor->refering_url,
             "url_rebuild" => $UrlDescriptor->url_rebuild,
             "is_redirect_url" => intval($UrlDescriptor->is_redirect_url),
@@ -248,6 +248,7 @@ class PHPCrawlerMySqlUrlCache extends PHPCrawlerURLCacheBase
 
         $sql = "INSERT IGNORE INTO urls SET " . implode(",", $vs);
 
+        echo $sql . PHP_EOL;
         $result = $this->_handle->query($sql);
     }
 

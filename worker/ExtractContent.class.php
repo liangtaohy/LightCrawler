@@ -147,7 +147,7 @@ class ExtractContent
     );
 
     public static $DefaultDocOriNoPatterns = array(
-        "/[\x{FF08}]?([\x{4e00}-\x{9fa5}]{2,20}?)[\[\x{3014}\(]([0-9]+)[\]\x{3015}\)][\x{7B2C}]?([0-9]+)\x{53F7}[\x{FF09}]?/u"
+        "/[\x{FF08}]?([\x{4e00}-\x{9fa5}]{2,20}?)[\[\x{3014}\x{3010}\(]([0-9]+)[\]\x{3015}\x{3011}\)][\x{7B2C}]?([0-9]+)\x{53F7}[\x{FF09}]?/u"
     );
 
     public static $DefaultNegPatterns = array(
@@ -675,7 +675,7 @@ class ExtractContent
     {
         $doc = $this->getExtractor()->extractor->document();
 
-        $links = $doc->query("//a");
+        $links = $doc->query("//a|//A");
 
         if ($links instanceof DOMNodeList && !empty($links)) {
             foreach ($links as $element) {
