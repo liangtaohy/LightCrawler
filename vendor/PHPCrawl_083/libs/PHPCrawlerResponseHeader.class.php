@@ -26,6 +26,10 @@ class PHPCrawlerResponseHeader
     $this->transfer_encoding = strtolower(PHPCrawlerUtils::getHeaderValue($header_string, "transfer-encoding"));
     $this->content_encoding = strtolower(PHPCrawlerUtils::getHeaderValue($header_string, "content-encoding"));
     $this->connection = strtolower(PHPCrawlerUtils::getHeaderValue($header_string, "connection"));
+    preg_match("#[\r\n]"."content-type".":.*charset=(.*)[\r\n]# Ui", $header_string, $match);
+    if (count($match) > 1) {
+      $this->charset = $match[1];
+    }
   }
   
   /**
@@ -48,6 +52,13 @@ class PHPCrawlerResponseHeader
    * @var string
    */
   public $content_type;
+
+  /**
+   * The charset
+   *
+   * @var
+   */
+  public $charset;
   
   /**
    * The content-length as stated in the header.

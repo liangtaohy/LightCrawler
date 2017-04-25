@@ -69,10 +69,16 @@ class DaoUrlCache extends DaoBase
 
     /**
      * @param $meta
+     * @return bool
      */
     public function insert($meta)
     {
-        $this->db->insert($meta, $this->_table_prefix . $this->_table_name, TRUE);
+        $record = new stdClass();
+        $record->url_md5 = $meta['distinct_hash'];
+        if (DaoXlegalLawContentRecord::getInstance()->ifUrlMd5Existed($record)) {
+            return false;
+        }
+        return $this->db->insert($meta, $this->_table_prefix . $this->_table_name, TRUE);
     }
 
     /**

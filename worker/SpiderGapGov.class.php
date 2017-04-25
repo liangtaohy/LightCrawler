@@ -172,7 +172,7 @@ class SpiderGapGov
                 "mtime" => 0,
             );
 
-            var_dump($value);
+            echo "detail-url: " . json_encode($value, JSON_UNESCAPED_UNICODE) . PHP_EOL;
             DaoUrlCache::getInstance()->insert($value);
         }
     }
@@ -201,7 +201,7 @@ class SpiderGapGov
                     $records[] = $record;
                 }
             }
-            //var_dump($records);
+            echo 'urls: ' . json_encode($records, JSON_UNESCAPED_UNICODE);
             $this->insert2urls($records);
         }
     }

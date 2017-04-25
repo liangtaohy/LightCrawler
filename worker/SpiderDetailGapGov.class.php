@@ -26,6 +26,7 @@ class SpiderDetailGapGov extends SpiderFrame
 
     protected $ContentHandlers = array(
         "#http://www\.gapp\.gov\.cn/zongshu/serviceContent[0-9]+\.shtml\?ID=[0-9]+# i"  => "handleDetailPage",
+        "#http://www\.gapp\.gov\.cn/govservice/[0-9]+/[0-9]+\.shtml# i"   => "handleDetailPage",
     );
 
     protected $path = '';

@@ -14,7 +14,7 @@
 
 $ext = ".class.php";
 
-$params = getopt('t:hds:');
+$params = getopt('t:hds:n:');
 
 $base = dirname(__FILE__);
 
@@ -23,6 +23,8 @@ $targetClass = isset($params['t']) && !empty($params['t']) ? trim($params['t']) 
 $seed = isset($params['s']) && !empty($params['s']) ? trim($params['s']) : '';
 
 $debug = isset($params['d']) ? true : false;
+
+$numProcess = isset($params['n']) && !empty($params['n']) ? intval($params['n']) : 0;
 
 if (empty($targetClass)) {
     echo "Example: " . PHP_EOL;
@@ -52,6 +54,10 @@ $pid = posix_getpid();
 
 file_put_contents('spider_' . $targetClass::MAGIC . '.pid', $pid);
 gsettings()->debug = $debug;
+if (!empty($numProcess)) {
+    gsettings()->number_of_process = $numProcess;
+}
+
 if (gsettings()->debug == true) {
     gsettings()->url_cache_type = URL_CACHE_IN_MEMORY;
     gsettings()->enable_resume = false;
