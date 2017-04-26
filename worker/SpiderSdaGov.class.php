@@ -13,6 +13,9 @@ class SpiderSdaGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
+    const BASE_URL = "http://www.sda.gov.cn/WS01/CL0463/";
+
+    private $flag = false;
     /**
      * Seed Conf
      * @var array
@@ -117,6 +120,31 @@ class SpiderSdaGov extends SpiderFrame
         $extract = new Extractor($source, $DocInfo->url);
         $document = $extract->domDocument();
 
+        $doc = $extract->document();
+        $alinks = $doc->query("//td[@class='zwgktablelink']/a");
+
+        if (!empty($alinks)) {
+            $records = array();
+            foreach ($alinks as $li) {
+                if ($li->hasAttribute('href')) {
+                    $href = trim($li->getAttribute('href'));
+                    $href = Formatter::formaturl(self::BASE_URL, $href);
+                    $record = new stdClass();
+                    $record->url = $href;
+                    $record->title = $li->nodeValue;
+                    $record->refering_url = self::BASE_URL;
+                    $records[] = $record;
+                }
+            }
+
+            var_dump($records);
+            $this->insert2urls($records);
+        }
+
+        if ($this->flag) {
+            return array();
+        }
+
         if ($isAjax === false) {
             if ($element = $document->getElementById("record")) {
                 $element->hasAttribute('value') ? $this->record = $element->getAttribute('value') : $this->record = 'null';
@@ -163,7 +191,6 @@ class SpiderSdaGov extends SpiderFrame
             $doc = $extract->document();
             $pages = $doc->query("//td[@class='pageTdSTR15']");
 
-            var_dump($pages);
             $total = 0;
             if (!empty($pages) && $pages instanceof DOMNodeList) {
                 foreach ($pages as $page) {
@@ -181,6 +208,7 @@ class SpiderSdaGov extends SpiderFrame
                 $pageNum++;
                 $pageUrls[] = $this->goSearch2('http://www.sda.gov.cn/wbpp/generalsearch?sort=true&sortId=CTIME&record=10&columnid=CLID|OPTIONS_VALUE10|CTITLE|CTIME2&relation=MUST|MUST|MUST|MUST',$this->classStr,'Region','4','4','CLID|OPTIONS_VALUE10|CTITLE|CTIME2',$this->CLID . '|' . $this->OPTIONS_VALUE10 . '|' . $this->CTITLE . '|' . $this->CTIME2, $pageNum);
             }
+            $this->flag = true;
         }
 
         if (gsettings()->debug) {
@@ -259,6 +287,33 @@ class SpiderSdaGov extends SpiderFrame
         }
         echo "insert data: " . $record->doc_id . PHP_EOL;
         return $record;
+    }
+
+    /**
+     * @param array $records
+     */
+    protected function insert2urls(array $records)
+    {
+        foreach ($records as $record) {
+            $map_key = md5($record->url);
+            $ctime = Utils::microTime();
+            $value = array("priority_level" => 0,
+                "distinct_hash" => $map_key,
+                "link_raw" => '',
+                "linkcode" => '',
+                "linktext" => $record->title,
+                "refering_url" => $record->refering_url,
+                "url_rebuild" => $record->url,
+                "is_redirect_url" => 0,
+                "url_link_depth" => 1,
+                "spider"    => md5(CRAWLER_NAME),
+                "ctime" => $ctime,
+                "mtime" => 0,
+            );
+
+            //echo "detail-url: " . json_encode($value, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+            DaoUrlCache::getInstance()->insert($value);
+        }
     }
 }
 

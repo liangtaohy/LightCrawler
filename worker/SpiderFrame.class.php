@@ -138,9 +138,6 @@ class SpiderFrame extends PHPCrawler
         flush();
 
         unset($DocInfo);
-        // for test
-        if (gsettings()->debug === true)
-            exit(0);
 
         return true;
     }

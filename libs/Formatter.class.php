@@ -43,7 +43,7 @@ class Formatter
                 array_shift($part);
                 $count = substr_count($str, '../');
                 if ($count>0) {
-                    for ($i=0; $i<=$count; $i++) {
+                    for ($i=0; $i<$count; $i++) {
                         array_pop($part);
                     }
                 }

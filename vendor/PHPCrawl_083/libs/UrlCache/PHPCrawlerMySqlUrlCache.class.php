@@ -19,7 +19,7 @@ class PHPCrawlerMySqlUrlCache extends PHPCrawlerURLCacheBase
     public function __construct($config)
     {
         if (defined("CRAWLER_NAME") && !empty(CRAWLER_NAME)) {
-            $this->_spidername = CRAWLER_NAME;
+            $this->_spidername = md5(CRAWLER_NAME);
         } else {
             $this->_spidername = "";
         }
