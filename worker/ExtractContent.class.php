@@ -675,7 +675,7 @@ class ExtractContent
     {
         $doc = $this->getExtractor()->extractor->document();
 
-        $links = $doc->query("//a|//A");
+        $links = $doc->query("//a");
 
         if ($links instanceof DOMNodeList && !empty($links)) {
             foreach ($links as $element) {
@@ -693,7 +693,6 @@ class ExtractContent
                             $this->attachments[] = $attachment;
                         }
                     }
-                    break;
                 }
             }
         }

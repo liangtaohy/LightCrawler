@@ -20,10 +20,16 @@ class SpiderMepGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
+        "http://www.mep.gov.cn/hjzli/gtfwgl/gtfwjck/index.shtml",
+        "http://www.mep.gov.cn/hjzli/gtfwgl/dzdcplfqw/index.shtml",
+        "http://www.mep.gov.cn/hjzli/gtfwgl/wxfwgl/index.shtml",
+        "http://www.mep.gov.cn/hyfs_12801/haqsb/xkz/index.shtml",
         "http://www.mep.gov.cn/gkml/73/index_835.htm",
     );
 
     protected $ContentHandlers = array(
+        "#http://www.mep.gov.cn/hjzli/gtfwgl/[a-z]+/index(_[0-9]+)?\.shtml# i" => "handleListPage",
+        "#http://www.mep.gov.cn/hyfs_12801/haqsb/# i"   => "handleListPage",
         "#http://www.mep.gov.cn/gkml/73/index_835([_0-9]+)?\.htm# i" => "handleListPage",
         "#/[0-9]{6}/t[0-9]+_[0-9]+\.htm# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
@@ -47,6 +53,24 @@ class SpiderMepGov extends SpiderFrame
         $pagesizePatterns = array(
             "#var m_nPageSize = [\"]?([0-9]+)[\"]?;# i",
         );
+
+        $pagesPatterns = array(
+            "#var countPage=[\"]?([0-9]+)[\"]?# i",
+        );
+
+        $pages = 0;
+        foreach ($pagesPatterns as $totalPattern) {
+            $result = preg_match($totalPattern, $DocInfo->source, $matches);
+            if (!empty($result) && !empty($matches) && is_array($matches)) {
+                $pages = intval($matches[1]);
+                break;
+            }
+            unset($matches);
+        }
+
+        if (!empty($pages)) {
+            return array('pages' => $pages);
+        }
 
         $total = 0;
         $pagesize = 0;
@@ -105,6 +129,12 @@ class SpiderMepGov extends SpiderFrame
         $sPageName = "index_835";
         $sPageExt = "htm";
 
+        if (stripos($DocInfo->url, "http://www.mep.gov.cn/hjzli/gtfwgl/") !== false
+            || stripos($DocInfo->url, "http://www.mep.gov.cn/hyfs_12801/haqsb/") !== false) {
+            $sPageName = "index";
+            $sPageExt = "shtml";
+        }
+
         $p = strrpos($DocInfo->url, "/");
         $prefix = substr($DocInfo->url, 0, $p + 1);
 
@@ -113,7 +143,7 @@ class SpiderMepGov extends SpiderFrame
         {
             if ($i == 1){
                 $url = $sPageName . "." . $sPageExt;
-            } else if ($i < 15) {
+            } else if ($i < 15 || $sPageExt === "shtml") {
                 $url = $sPageName . "_" . ($i-1) . "." . $sPageExt;
             } else {
                 break;
@@ -195,7 +225,7 @@ class SpiderMepGov extends SpiderFrame
             //$index_blocks = $extract->indexBlock($extract->text);
             //echo implode("\n", $index_blocks) . PHP_EOL;
             var_dump($record);
-            return false;
+            exit(0);
         }
         echo "insert data: " . $record->doc_id . PHP_EOL;
         return $record;
