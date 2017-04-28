@@ -18,7 +18,6 @@ class SpiderDyChinasarftGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://dy.chinasarft.gov.cn/html/www/article/2011/012d91d170c204ac4028819e2d917c9c.html",
         "http://dy.chinasarft.gov.cn/html/www/catalog/012996c2a84002724028815629965e99.html", // 管理动态
         "http://dy.chinasarft.gov.cn/html/www/catalog/012996c02e8902354028815629965e99.html", // 政策法规
         "http://dy.chinasarft.gov.cn/html/www/catalog/0129dffcccb1015d402881cd29de91ec.html", // 备案公示
@@ -125,7 +124,7 @@ class SpiderDyChinasarftGov extends SpiderFrame
         if (gsettings()->debug) {
             //echo implode("", $extract->text) . PHP_EOL;
             var_dump($record);
-            return false;
+            exit(0);
         }
         return $record;
     }

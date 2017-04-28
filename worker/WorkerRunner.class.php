@@ -35,12 +35,18 @@ if (empty($targetClass)) {
 
 $target_file = $base . "/" . $targetClass . $ext;
 
-if (!file_exists($target_file)) {
-    echo "{$target_file} not existed!" . PHP_EOL;
-    echo "Example: " . PHP_EOL;
-    echo "-t DemoTargetWorker" . PHP_EOL;
-    echo "please input a valid worker class name to run!!" . PHP_EOL;
-    exit(0);
+$target_file1 = "/home/work/xdp/phpsrc/app/LightCrawler/worker/" . $targetClass . $ext;
+
+if (!file_exists($target_file) && file_exists($target_file1)) {
+    $target_file = $target_file1;
+} else {
+    if (!file_exists($target_file)) {
+        echo "{$target_file} not existed!" . PHP_EOL;
+        echo "Example: " . PHP_EOL;
+        echo "-t DemoTargetWorker" . PHP_EOL;
+        echo "please input a valid worker class name to run!!" . PHP_EOL;
+        exit(0);
+    }
 }
 
 require_once $target_file;

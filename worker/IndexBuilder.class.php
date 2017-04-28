@@ -50,7 +50,7 @@ class IndexBuilder
                     $record['tags'] = $item['tags'];
                     $record['craw_url'] = $item['url'];
 
-                    file_put_contents(self::JSON_FILE_NAME, json_encode($record, JSON_UNESCAPED_UNICODE), FILE_APPEND);
+                    file_put_contents(self::JSON_FILE_NAME, json_encode($record, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
                 }
             }
         }

@@ -20,6 +20,7 @@ class SpiderDepartmentCBRC extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
+        "http://www.cbrc.gov.cn/forwardToXZXKPage2.html",
         "http://www.cbrc.gov.cn/searchFen.do?year=&type=null&number=null&docTitle=null&indexNo=null&startDate=null&endDate=null&agencyType=null&interViewType=null&zjgxflag=true&current=1",
     );
 
