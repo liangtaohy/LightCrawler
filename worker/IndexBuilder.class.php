@@ -11,7 +11,10 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class IndexBuilder
 {
+    const MAGIC = __CLASS__;
+
     const JSON_FILE_NAME = "tmp.json";
+
     public function run()
     {
         $where = array(
