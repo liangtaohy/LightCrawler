@@ -69,6 +69,19 @@ class DaoXlegalLawContentRecord extends DaoBase
     }
 
     /**
+     * @param array $where
+     * @param array $sort
+     * @param int $page
+     * @param int $pagesize
+     * @param array $fields
+     * @return array
+     */
+    public function search(array $where = array(), array $sort = array(), $page = 1, $pagesize = 10, array $fields = array())
+    {
+        return parent::search_data($where, $sort, $page, $pagesize, $fields, $this->db);
+    }
+
+    /**
      *
      */
     public function search_data()
