@@ -22,7 +22,7 @@ class Formatter
                 return $str;
             }
             $str = str_replace('\\', '/', $str);
-            $parseUrl = parse_url(dirname($url).'/');
+            $parseUrl = parse_url(dirname($url) . '/');
             $scheme = isset($parseUrl['scheme']) ? $parseUrl['scheme'] : 'http';
             if (!isset($parseUrl['host']) || empty($parseUrl['host'])) {
                 //echo "formaturl fail\n";

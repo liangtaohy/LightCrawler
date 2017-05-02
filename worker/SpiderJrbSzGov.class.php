@@ -1,16 +1,16 @@
 <?php
 
 /**
- * 质量监督总局
- * www.aqsiq.gov.cn
+ * 深圳金融办
+ * http://www.sz.gov.cn/jrb/sjrb/tzgg/
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/4/27
- * Time: PM12:34
+ * Date: 17/5/2
+ * Time: PM2:01
  */
-define("CRAWLER_NAME", md5("spider-aqsiq.gov"));
+define("CRAWLER_NAME", md5("spider-bjjrj.gov"));
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderAqsiqGov extends SpiderFrame
+class SpiderJrbSzGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -19,17 +19,17 @@ class SpiderAqsiqGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://www.aqsiq.gov.cn/xxgk_13386/zxxxgk/",
+        "http://www.sz.gov.cn/jrb/sjrb/tzgg/index.htm",
     );
 
     protected $ContentHandlers = array(
-        "#/[0-9]{6}/t[0-9]{6,8}_[0-9]+\.htm# i"    => "handleDetailPage",
-        "#http://www\.aqsiq\.gov\.cn/xxgk_13386/# i"   => "handleListPage",
+        "#http://www\.sz\.gov\.cn/jrb/sjrb/tzgg/index([0-9_]+)?\.htm# i" => "handleListPage",
+        "#http://www\.sz\.gov\.cn/jrb/sjrb/tzgg/[0-9]{6}/t[0-9]{8}_[0-9]+\.htm# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderAqsiqGov constructor.
+     * SpiderJrbSzGov constructor.
      */
     public function __construct()
     {
@@ -50,7 +50,7 @@ class SpiderAqsiqGov extends SpiderFrame
             return false;
         }
 
-	    if($_nCurrIndex<$_nPageCount-1)
+        if($_nCurrIndex<$_nPageCount-1)
         {
             return Formatter::formaturl($url, $_sPageName . "_" . ($_nCurrIndex+1) . "." . $_sPageExt);
         }
@@ -58,6 +58,10 @@ class SpiderAqsiqGov extends SpiderFrame
         return false;
     }
 
+    /**
+     * @param PHPCrawlerDocumentInfo $DocInfo
+     * @return array
+     */
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $pages = array();

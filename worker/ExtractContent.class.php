@@ -569,8 +569,8 @@ class ExtractContent
             return "";
         }
 
-        $pCharacterLen = mb_strlen(preg_replace("#([\s]+)/# i", "", implode("", $this->textP), "UTF-8"));
-        $textCharacterLen = mb_strlen(preg_replace("#[\s]+# i", "", implode("", $this->text), "UTF-8"));
+        $pCharacterLen = mb_strlen(preg_replace("#([\s]+)# i", "", implode("", $this->textP)), "UTF-8");
+        $textCharacterLen = mb_strlen(preg_replace("#([\s]+)# i", "", implode("", $this->text)), "UTF-8");
         $ratio = $pCharacterLen / $textCharacterLen;
         echo "ratio: " . $ratio . PHP_EOL;
         if ($ratio >= 0.01) {
