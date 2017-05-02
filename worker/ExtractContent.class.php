@@ -569,7 +569,9 @@ class ExtractContent
             return "";
         }
 
-        $ratio = $this->pCharacterLen / $this->textCharacterLen;
+        $pCharacterLen = mb_strlen(preg_replace("#([\s]+)/# i", "", implode("", $this->textP), "UTF-8"));
+        $textCharacterLen = mb_strlen(preg_replace("#[\s]+# i", "", implode("", $this->text), "UTF-8"));
+        $ratio = $pCharacterLen / $textCharacterLen;
         echo "ratio: " . $ratio . PHP_EOL;
         if ($ratio >= 0.01) {
             return implode("\n", $this->textP);
@@ -692,6 +694,28 @@ class ExtractContent
                         $href = $element->getAttribute('href');
                         $href = Formatter::formaturl($this->url, $href);
                         $r = preg_match("/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_]+\.(doc|pdf|txt|xls)/ui", $href);
+                        if (!empty($r)) {
+                            $attachment = array(
+                                'title' => trim($element->nodeValue),
+                                'url'  => $href,
+                            );
+
+                            $this->attachments[] = $attachment;
+                        }
+                    }
+                }
+            }
+        }
+
+        $images = $doc->query("//img");
+
+        if ($images instanceof DOMNodeList && !empty($images)) {
+            foreach ($images as $element) {
+                if (strtolower($element->nodeName) === 'img') {
+                    if ($element->hasAttribute('src')) {
+                        $href = $element->getAttribute('src');
+                        $href = Formatter::formaturl($this->url, $href);
+                        $r = preg_match("/\/userfiles\/image\/[0-9]+\.(png|jpg)/ui", $href);
                         if (!empty($r)) {
                             $attachment = array(
                                 'title' => trim($element->nodeValue),
