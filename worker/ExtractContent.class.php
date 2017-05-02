@@ -508,6 +508,14 @@ class ExtractContent
             $this->meta_title = "";
         }
 
+        foreach ($this->title_texts as $tag_name => $title_text) {
+            $tag_name = strtolower($tag_name);
+            if ($tag_name == "h1") {
+                $this->title = $title_text;
+                break;
+            }
+        }
+
         return $this->meta_title;
     }
 
@@ -683,7 +691,7 @@ class ExtractContent
                     if ($element->hasAttribute('href')) {
                         $href = $element->getAttribute('href');
                         $href = Formatter::formaturl($this->url, $href);
-                        $r = preg_match("#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i", $href);
+                        $r = preg_match("/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_]+\.(doc|pdf|txt|xls)/ui", $href);
                         if (!empty($r)) {
                             $attachment = array(
                                 'title' => trim($element->nodeValue),
