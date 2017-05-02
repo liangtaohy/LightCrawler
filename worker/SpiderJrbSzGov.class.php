@@ -19,13 +19,17 @@ class SpiderJrbSzGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
+        "http://www.sz.gov.cn/jrb/sjrb/jrjg/",
+        "http://www.sz.gov.cn/jrb/sjrb/zwgk/zcfg/jrfzzc/index.htm",
         "http://www.sz.gov.cn/jrb/sjrb/tzgg/index.htm",
     );
 
     protected $ContentHandlers = array(
+        "#http://www\.sz\.gov\.cn/jrb/sjrb/zwgk/zcfg/jrfzzc/index([0-9_]+)?\.htm# i" => "handleListPage",
         "#http://www\.sz\.gov\.cn/jrb/sjrb/tzgg/index([0-9_]+)?\.htm# i" => "handleListPage",
-        "#http://www\.sz\.gov\.cn/jrb/sjrb/tzgg/[0-9]{6}/t[0-9]{8}_[0-9]+\.htm# i"  => "handleDetailPage",
+        "#/[0-9]{6}/t[0-9]{8}_[0-9]+\.htm# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
+        "#http://www\.sz\.gov\.cn/jrb/sjrb/jrjg/# i"    => "handleListPage",
     );
 
     /**
@@ -149,6 +153,25 @@ class SpiderJrbSzGov extends SpiderFrame
             $record->simhash = $simhash;
         }
 
+        $doc = $extract->extractor->document();
+        if (empty($record->publish_time)) {
+            $biaoti_s = $doc->query("//span[@class='biaoti_s']");
+            if (!empty($biaoti_s) && $biaoti_s instanceof DOMNodeList) {
+                foreach ($biaoti_s as $biaoti_) {
+                    preg_match("#([0-9]{4})-([0-9]{2})-([0-9]{2})# i", $biaoti_->nodeValue, $matches);
+                    if (!empty($matches) && count($matches) > 3) {
+                        $record->publish_time = strtotime(sprintf("%s-%s-%s", $matches[1], $matches[2], $matches[3]));
+                        break;
+                    }
+                }
+            }
+        }
+
+        $biaoti_b = $doc->query("//span[@class='biaoti_b']");
+
+        if (!empty($biaoti_b) && $biaoti_b instanceof DOMNodeList) {
+            !empty($biaoti_b->item(0)->nodeValue) ? $record->title = $biaoti_b->item(0)->nodeValue : null;
+        }
 
         $record->type = DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;

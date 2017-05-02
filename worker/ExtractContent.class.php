@@ -422,7 +422,7 @@ class ExtractContent
                 }
             }
         }
-
+        
         if (!empty($this->publish_time)) {
             $matches = array();
             preg_match("/([0-9]{4})[\x{5E74}\-]([0-9]{1,2})[\x{6708}\-]([0-9]{1,2})[\x{65E5}]?.*/u", $this->publish_time, $matches);

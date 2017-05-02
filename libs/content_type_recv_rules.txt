@@ -2,4 +2,5 @@
 #application/msword#
 #application/pdf#
 #application/x\-xls#
+#application/vnd.ms\-excel#
 #application/octet-stream#
