@@ -698,7 +698,7 @@ class ExtractContent
                     if ($element->hasAttribute('href')) {
                         $href = $element->getAttribute('href');
                         $href = Formatter::formaturl($this->url, $href);
-                        $r = preg_match("/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}]+\.(doc|pdf|txt|xls|ceb)/ui", $href);
+                        $r = preg_match("/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui", $href);
                         if (!empty($r)) {
                             $attachment = array(
                                 'title' => trim($element->nodeValue),
@@ -808,11 +808,11 @@ class ExtractContent
      * to HTML
      * @return mixed
      */
-    public function toHTML()
+    public function toHTML($node = null)
     {
         $this->extractor->domDocument()->preserveWhiteSpace = false;
         $this->extractor->domDocument()->formatOutput = true;
-        return $this->extractor->domDocument()->saveHTML();
+        return $this->extractor->domDocument()->saveHTML($node);
     }
 
     /**
