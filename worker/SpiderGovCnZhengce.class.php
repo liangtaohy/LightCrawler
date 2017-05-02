@@ -19,11 +19,12 @@ class SpiderGovCnZhengce extends SpiderFrame
      */
     static $SeedConf = array(
         "http://sousuo.gov.cn/list.htm?q=&n=15&p=0&t=paper&sort=pubtime&childtype=&subchildtype=&pcodeJiguan=&pcodeYear=&pcodeNum=&location=&searchfield=&title=&content=&pcode=&puborg=&timetype=timeqb&mintime=&maxtime=",
-        "http://new.sousuo.gov.cn/list.htm?sort=pubtime&advance=true&t=paper&n=15",
+        //"http://new.sousuo.gov.cn/list.htm?sort=pubtime&advance=true&t=paper&n=15",
     );
 
     protected $ContentHandlers = array(
-        "#http://sousuo.gov.cn/list.htm\?q=&n=[0-9]+&p=[0-9]+&t=paper&sort=pubtime&childtype=&subchildtype=&pcodeJiguan=&pcodeYear=&pcodeNum=&location=&searchfield=&title=&content=&pcode=&puborg=&timetype=timeqb&mintime=&maxtime=# i" => "handleListPage",
+        //"http://new\.sousuo\.gov\.cn/list\.htm\?sort=pubtime&advance=true&t=paper&n=15"  => "void",
+        "#http://sousuo\.gov\.cn/list\.htm# i" => "handleListPage",
         "#http://www.gov.cn/zhengce/content/[0-9]+\-[0-9]+/[0-9]+/content_[0-9]+\.htm# i"   => "handleDetailPage",
         "#http://www.gov.cn/zhengce/[0-5]+\-[0-9]+/[0-9]+/[0-9}+/files/[0-9a-zA-Z]+\.doc# i" => "handleDocAttatchment"
     );
@@ -42,6 +43,7 @@ class SpiderGovCnZhengce extends SpiderFrame
      */
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
+        file_put_contents("dump.html", $DocInfo->source);
         return true;
     }
 

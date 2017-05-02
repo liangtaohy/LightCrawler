@@ -175,8 +175,10 @@ class SpiderFrame extends PHPCrawler
         // write raw data into local file system
         $pages = $this->_handleListPage($DocInfo);
 
-        foreach ($pages as $page) {
-            $this->addFeed($page);
+        if (isset($pages) && is_array($pages)) {
+            foreach ($pages as $page) {
+                $this->addFeed($page);
+            }
         }
 
         return true;
