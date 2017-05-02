@@ -133,6 +133,10 @@ class ExtractContent
         "script", "style", "link",
     );
 
+    public static $DefaultSpecialClasses = array(
+        "//div[@class='nav']","//div[@class='container top']","//div[@class='head container']"
+    );
+
     public static $DefaultFooterRules = array(
         "footer", "copyright"
     );
@@ -510,7 +514,7 @@ class ExtractContent
 
         foreach ($this->title_texts as $tag_name => $title_text) {
             $tag_name = strtolower($tag_name);
-            if ($tag_name == "h1") {
+            if ($tag_name == "h1" || $tag_name == "h2" || $tag_name == "h3") {
                 $this->title = $title_text;
                 break;
             }
@@ -563,7 +567,7 @@ class ExtractContent
      * 获取正文
      * @return string
      */
-    public function getContent()
+    public function getContent($ignore_ratio = false)
     {
         if (empty($this->textCharacterLen)) {
             return "";
@@ -573,7 +577,8 @@ class ExtractContent
         $textCharacterLen = mb_strlen(preg_replace("#([\s]+)# i", "", implode("", $this->text)), "UTF-8");
         $ratio = $pCharacterLen / $textCharacterLen;
         echo "ratio: " . $ratio . PHP_EOL;
-        if ($ratio >= 0.01) {
+
+        if ($ignore_ratio == false && $ratio >= 0.01) {
             return implode("\n", $this->textP);
         }
 
@@ -823,6 +828,8 @@ class ExtractContent
 
         $dom = $this->extractor->domDocument();
 
+        $doc = $this->extractor->document();
+
         if ($dom instanceof DOMDocument) {
             $delete = array();
 
@@ -831,6 +838,15 @@ class ExtractContent
 
                 foreach ($tags as $tag) {
                     $delete[] = $tag;
+                }
+            }
+
+            foreach (self::$DefaultSpecialClasses as $defaultSpecialClass) {
+                $nodes = $doc->query($defaultSpecialClass);
+                if (!empty($nodes) && $nodes instanceof DOMNodeList) {
+                    foreach ($nodes as $node) {
+                        $delete[] = $node;
+                    }
                 }
             }
 
