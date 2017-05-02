@@ -158,8 +158,8 @@ class ExtractContent
         "author"    => array("发布机构", "发文机关", "发布单位", "发文机构", "办文部门", "颁布单位"),
         "title"     => array("公文名称", "信息名称", "标题", "名称",),
         "tags"      => array("效力级别","所属类别", "主题分类","信息类别","分类"),
-        "index_ori_no"  => array("索引号","信息索引"),
-        "doc_ori_no"    => array("文号","发文字号"),
+        "index_ori_no"  => array("索引号","信息索引","索取号"),
+        "doc_ori_no"    => array("文号","发文字号","文件编号"),
         "publish_time"  => array("发文日期","发布日期","发布时间","颁布日期"),
         "cwrq_time" => array("成文日期", "生成日期"),
         "keywords"  => array("主题词"),
@@ -360,7 +360,7 @@ class ExtractContent
                 $len = mb_strlen($needle, "UTF-8");
                 $t = mb_substr($index_str, $p + mb_strlen($needle, "UTF-8"), 1);
 
-                if ($t == ":" || $t == "：" || $t == "】") {
+                if ($t == ":" || $t == "：" || $t == "】" || $t == "|") {
                     $reverse[] = $p;
                     $summary[$field] = array("pos"=>$p, "len" => $len + 1);
                 }
@@ -472,7 +472,7 @@ class ExtractContent
         foreach ($text_lines as $text_line) {
             $text_line = preg_replace("/[\s\x{3000}\x{3010}]+/u", "", trim($text_line));
             if (!empty($text_line)) {
-                preg_match("/^([\x{4e00}-\x{9fa5}\\s+]{2,8})[\x{FF1A}\x{3011}:].*/ui", $text_line, $matches) ? $index_blocks[] = $text_line : null;
+                preg_match("/^([\x{4e00}-\x{9fa5}\\s+]{2,8})[\x{FF1A}\x{3011}:\|].*/ui", $text_line, $matches) ? $index_blocks[] = $text_line : null;
             }
         }
 
