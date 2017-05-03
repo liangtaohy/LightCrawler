@@ -165,7 +165,7 @@ class ExtractContent
         "tags"      => array("效力级别","所属类别", "主题分类","信息类别","分类"),
         "index_ori_no"  => array("索引号","信息索引","索取号"),
         "doc_ori_no"    => array("文号","发文字号","文件编号","发布文号"),
-        "publish_time"  => array("发文日期","发布日期","发布时间","颁布日期","生产日期"),
+        "publish_time"  => array("发文日期","发布日期","发布时间","颁布日期","生产日期","时间"),
         "cwrq_time" => array("成文日期", "生成日期"),
         "keywords"  => array("主题词"),
         "t_valid"   => array("执行日期", "生效日期", "实施日期", "有效时间"),
