@@ -50,14 +50,14 @@ class SpiderZhonglunCom extends SpiderFrame
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
         $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
-        $record->author = $extract->author;
+        $record->author = "中伦律师事务所";
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
         $record->publish_time = $extract->publish_time;
         $record->t_valid = $extract->t_valid;
         $record->t_invalid = $extract->t_invalid;
         $record->negs = implode(",", $extract->negs);
-        $record->tags = $extract->tags;
+        $record->tags = "律所实务";
         $record->simhash = '';
         if (!empty($extract->attachments)) {
             $record->attachment = json_encode($extract->attachments, JSON_UNESCAPED_UNICODE);
