@@ -317,7 +317,7 @@ class SpiderFrame extends PHPCrawler
             mkdir($tmp, 0777, true);
         }
 
-        $result = preg_match("#/[0-9a-zA-Z]+\.(doc|pdf|txt|xls)# i", $DocInfo->url, $matches);
+        $result = preg_match("/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui", $DocInfo->url, $matches);
 
         $ext = 'unknown';
         if (!empty($result) && !empty($matches) && is_array($matches)) {

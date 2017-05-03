@@ -18,15 +18,16 @@ class SpiderGovCnZhengce extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://sousuo.gov.cn/list.htm?q=&n=15&p=0&t=paper&sort=pubtime&childtype=&subchildtype=&pcodeJiguan=&pcodeYear=&pcodeNum=&location=&searchfield=&title=&content=&pcode=&puborg=&timetype=timeqb&mintime=&maxtime=",
+        "http://sousuo.gov.cn/column/30469/0.htm",
+        //"http://sousuo.gov.cn/list.htm?q=&n=15&p=0&t=paper&sort=pubtime&childtype=&subchildtype=&pcodeJiguan=&pcodeYear=&pcodeNum=&location=&searchfield=&title=&content=&pcode=&puborg=&timetype=timeqb&mintime=&maxtime=",
         //"http://new.sousuo.gov.cn/list.htm?sort=pubtime&advance=true&t=paper&n=15",
     );
 
     protected $ContentHandlers = array(
-        //"http://new\.sousuo\.gov\.cn/list\.htm\?sort=pubtime&advance=true&t=paper&n=15"  => "void",
+        "#http://sousuo\.gov\.cn/column/30469/[0-9]+\.htm# i"   => "handleListPage",
         "#http://sousuo\.gov\.cn/list\.htm# i" => "handleListPage",
         "#http://www.gov.cn/zhengce/content/[0-9]+\-[0-9]+/[0-9]+/content_[0-9]+\.htm# i"   => "handleDetailPage",
-        "#http://www.gov.cn/zhengce/[0-5]+\-[0-9]+/[0-9]+/[0-9}+/files/[0-9a-zA-Z]+\.doc# i" => "handleDocAttatchment"
+        //"#http://www.gov.cn/zhengce/[0-5]+\-[0-9]+/[0-9]+/[0-9}+/files/[0-9a-zA-Z]+\.doc# i" => "handleDocAttatchment"
     );
 
     /**
@@ -43,7 +44,6 @@ class SpiderGovCnZhengce extends SpiderFrame
      */
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
-        file_put_contents("dump.html", $DocInfo->source);
         return true;
     }
 
@@ -60,8 +60,6 @@ class SpiderGovCnZhengce extends SpiderFrame
         $extract->parse();
 
         $content = $extract->getContent();
-
-        $doc = $extract->extractor->document();
 
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
@@ -116,7 +114,7 @@ class SpiderGovCnZhengce extends SpiderFrame
             //$index_blocks = $extract->indexBlock($extract->text);
             //echo implode("\n", $index_blocks) . PHP_EOL;
             var_dump($record);
-            return false;
+            exit(0);
         }
         echo "insert data: " . $record->doc_id . PHP_EOL;
         return $record;

@@ -7,17 +7,12 @@
  * Date: 17/3/31
  * Time: PM10:01
  */
+define("CRAWLER_NAME", md5("spider-chinacourt.gov"));
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderChinaCourt extends PHPCrawler
+class SpiderChinaCourt extends SpiderFrame
 {
-    const MAGIC = "SpiderChinaCourt";
-
-    public $storage_root = "/mnt/open-xdp/spider";
-
-    private $raw_data_dir = "/raw_data";
-
-    protected $starting_urls = array();
+    const MAGIC = __CLASS__;
 
     /**
      * Seed Conf
@@ -30,158 +25,31 @@ class SpiderChinaCourt extends PHPCrawler
         "http://www.chinacourt.org/law/more/law_type_id/MzAwM0AFAA%3D%3D.shtml",
     );
 
-    static $ContentHandlers = array(
+    protected $ContentHandlers = array(
         "#(http://www.chinacourt.org/law/more/law_type_id/[a-zA-Z]+%3D%3D/page/[0-9]+.shtml)$# i" => "handleListPage",
         "#(http://www.chinacourt.org/law/more/law_type_id/[a-zA-Z]+%3D%3D.shtml)$# i" => "handleListPage",
         "#(http://www.chinacourt.org/law/detail/[0-9]+/[0-9]+/id/[0-9]+.shtml)$# i" => "handleDetailPage",
     );
 
-    /**
-     * @var null
-     */
-    public $storage = null;
-
-    private $contenttyperules = null;
-
     public function __construct()
     {
         parent::__construct();
-        $this->init();
     }
 
-    public function setFeed($url)
-    {
-        $this->feed = $url;
-        parent::setURL($url);
-    }
-
-    private function init()
-    {
-        // memory limit
-        ini_set('memory_limit', '512M');
-
-        $this->seeds_file = dirname(__FILE__) . "/../config/". self::MAGIC . "_seeds.txt";
-
-        if (file_exists($this->seeds_file)) {
-            @unlink($this->seeds_file);
-        }
-
-        // Conf
-        $this->contenttyperules = ContentTypeRecvRulesMgr::instance();
-
-        // Content Type Rules
-        foreach($this->contenttyperules->_rules as $v) {
-            parent::addReceiveContentType($v);
-        }
-
-        // URL Filter Rules
-        parent::addURLFilterRule("#(jpg|jpeg|css|js|png|mp4|mp3|download=doc|download=txt)# i");
-
-        foreach (self::$ContentHandlers as $key => $item) {
-            parent::addURLFollowRule($key);
-        }
-
-        // Follow Mode - default is UrlFollowMode::FOLLOW_MODE_HOST
-        parent::setFollowMode(gsettings()->follow_mode);
-        parent::enableCookieHandling(gsettings()->cookie_handling_mode);
-        parent::setUrlCacheType(gsettings()->url_cache_type);
-        parent::obeyRobotsTxt(gsettings()->obey_robots);
-        parent::setConnectionTimeout(gsettings()->connect_timeout);
-        parent::setStreamTimeout(gsettings()->stream_timeout);
-        parent::enableAggressiveLinkSearch(gsettings()->aggressive_link_search);
-        parent::setRequestLimit(gsettings()->request_limit);
-        parent::setContentSizeLimit(gsettings()->content_size_limit);
-        parent::setTrafficLimit(gsettings()->traffic_limit);
-        parent::setWorkingDirectory(gsettings()->working_space_path);
-
-        // UserAgent Settings
-        if (stripos(gsettings()->user_agent, UA_DEFAULT) !== false) {
-            parent::setUserAgentString(gsettings()->ua_default);
-        } else if (stripos(gsettings()->user_agent, UA_ANDROID) !== false) {
-            parent::setUserAgentString(gsettings()->ua_android);
-        } else if (stripos(gsettings()->UserAgent, UA_IPHONE) !== false) {
-            parent::setUserAgentString(gsettings()->ua_iphone);
-        }
-
-        parent::requestGzipContent(gsettings()->gzip_encoded_mode);
-        parent::setFollowRedirects(gsettings()->header_redirects_mode);
-        // Request Delay
-        // Limit request rate
-        parent::setRequestDelay(gsettings()->global_request_delay);
-        // Retry Limit
-        // default:1
-        parent::setRetryLimit(gsettings()->retry_limit);
-        if (gsettings()->enable_resume)
-            parent::enableResumption();
-
-        $this->storage = KVStorageFactory::create(gsettings()->storage);
-
-        if (!file_exists($this->storage_root)) {
-            mkdir($this->storage_root, 0777, true);
-        }
-
-        if (!file_exists($this->storage_root . $this->raw_data_dir)) {
-            mkdir($this->storage_root . $this->raw_data_dir, 0777, true);
-        }
-    }
-
-    public function handleDocumentInfo(PHPCrawlerDocumentInfo $DocInfo)
-    {
-        // Just detect linebreak for output
-        if (PHP_SAPI == "cli") $lb = "\n";
-        else $lb = "<br />";
-
-        $log = "page:" . $DocInfo->url;
-        $log .= " status:" . $DocInfo->http_status_code . " referer:" . $DocInfo->referer_url;
-        $log .= " bytes:" . $DocInfo->bytes_received;
-
-        if ($DocInfo->error_occured) {
-            $log .= " error_occured:" . $DocInfo->error_occured . " error_string:({$DocInfo->error_string})";
-        } else if ((int)($DocInfo->http_status_code) == 200) { // status 200 OK
-            if ($DocInfo->bytes_received > 100) { // call extractor
-                $this->handleContent($DocInfo, $total, $inserted);
-                $log .= " total:" . $total . " inserted:" . $inserted;
-            }
-        }
-
-        echo $log . PHP_EOL;
-
-        // Now you should do something with the content of the actual
-        // received page or file ($DocInfo->source), we skip it in this example
-
-        flush();
-
-        unset($DocInfo);
-        // for test
-        if (gsettings()->debug === true)
-            exit(0);
-
-        return true;
-    }
-
-    public function handleContent($DocInfo, &$total, &$inserted)
-    {
-        $total = 0;
-        $inserted = 0;
-
-        foreach (self::$ContentHandlers as $key => $contentHandler) {
-            $matched = preg_match($key, $DocInfo->url);
-            if ($matched) {
-                echo "enter handler " . $contentHandler . PHP_EOL;
-                call_user_func(array($this, $contentHandler), $DocInfo);
-            }
-            unset($matched);
-        }
-
-        return true;
-    }
-
-    public function handleListPage(PHPCrawlerDocumentInfo $DocInfo)
+    /**
+     * @param PHPCrawlerDocumentInfo $DocInfo
+     * @return bool
+     */
+    protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         return true;
     }
 
-    public function handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
+    /**
+     * @param PHPCrawlerDocumentInfo $DocInfo
+     * @return bool
+     */
+    protected function _thandleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         // write raw data into local file system
         $tmp = $this->storage_root . $this->raw_data_dir . '/' . date("Ymd");
@@ -281,79 +149,58 @@ class SpiderChinaCourt extends PHPCrawler
             $document = array_merge($document, $summary);
         }
 
-        // If exists, drop it begin
-        $document['id'] = ContentHelper::GenContentMd5($document['content']);
+        $record = new XlegalLawContentRecord();
+        $c = preg_replace("/[\s\x{3000}]+/u", "", $raw_content);
+        $record->doc_id = md5($c);
+        $record->title = $document['title'];
+        $record->author = $document['author'];
+        $record->content = $document['content'];
+        $record->doc_ori_no = $document['doc_ori_no'];
+        $record->publish_time = $document['publish_time'];
+        $record->t_valid = $document['t_valid'];
+        $record->t_invalid = $document['t_invalid'];
+        //$record->negs = implode(",", $extract->negs);
+        $record->tags = $document['tags'];
+        $record->simhash = '';
 
-        $urlmd5 = md5($document['craw_url']);
+        if (empty(gsettings()->debug)) {
+            $res = FlaskRestClient::GetInstance()->simHash($c);
 
-        if (DaoSpiderlLawBase::getInstance()->ifContentExists($urlmd5, $document['id'])) {
-            echo "data exsits: urlmd5-{$urlmd5}, doc_id-{$document['id']}, " . $DocInfo->url;
-            return true;
-        }
-
-        $res = FlaskRestClient::GetInstance()->simHash($document['content']);
-
-        $simhash = '';
-        if (isset($res['simhash']) && !empty($res['simhash'])) {
-            $simhash = $res['simhash'];
-        }
-
-        if (isset($res['repeated']) && !empty($res['repeated'])) {
-            echo 'data repeated: ' . $DocInfo->url . PHP_EOL;
-            return true;
-        }
-
-        // If exists end
-
-        $data = array(
-            'doc_id'    => $document['id'],
-            'type'  => DaoSpiderlLawBase::TYPE_JSON,
-            'url'   => $document['craw_url'],
-            'url_md5'   => $urlmd5,
-            'content'   => json_encode($document, JSON_UNESCAPED_UNICODE),
-            'simhash'   => $simhash,
-        );
-
-        DaoSpiderlLawBase::getInstance()->insert($data);
-        return true;
-    }
-
-    public function run()
-    {
-        mb_regex_encoding("UTF-8");
-
-        if (gsettings()->enable_resume) {
-            $h = md5($this->feed);
-            $tmp = "/tmp/crawler_id_for_$h";
-        }
-
-        if (gsettings()->enable_resume) {
-            if (!file_exists($tmp)) {
-                $crawler_id = parent::getCrawlerId();
-                file_put_contents($tmp, $crawler_id);
-            } else {
-                $crawler_id = file_get_contents($tmp);
-                parent::resume($crawler_id);
+            $simhash = '';
+            if (isset($res['simhash']) && !empty($res['simhash'])) {
+                $simhash = $res['simhash'];
             }
+
+            if (isset($res['repeated']) && !empty($res['repeated'])) {
+                echo 'data repeated: ' . $DocInfo->url . ', repeated simhash: ' . $res['simhash1'] .PHP_EOL;
+                $flag = 1;
+                if (!empty($record->doc_ori_no)) {
+                    $r = DaoXlegalLawContentRecord::getInstance()->ifDocOriExisted($record);
+                    if (empty($r)) {
+                        $flag = 0;
+                    }
+                }
+
+                if ($flag)
+                    return false;
+            }
+
+            $record->simhash = $simhash;
         }
 
-        // exclude user code (user code will be excuted in child process)
-        if (empty(gsettings()->number_of_process) || gsettings()->number_of_process < 2) {
-            parent::go();
-        } else {
-            parent::goMultiProcessed(gsettings()->number_of_process, 2);
+
+        $record->type = DaoSpiderlLawBase::TYPE_TXT;
+        $record->status = 1;
+        $record->url = $DocInfo->url;
+        $record->url_md5 = md5($DocInfo->url);
+
+        if (gsettings()->debug) {
+            var_dump($record);
+            exit(0);
         }
 
-        // After the process is finished completely: Delete the crawler-ID
-        if (gsettings()->enable_resume)
-            unlink($tmp);
-
-        $report = parent::getProcessReport();
-        $notice = "links-followed:".$report->links_followed;
-        $notice .= " documents-received:" . $report->files_received;
-        $notice .= " bytes-received:" . $report->bytes_received;
-        $notice .= " process-runtime:" . $report->process_runtime;
-        echo $notice . PHP_EOL;
+        DaoXlegalLawContentRecord::getInstance()->insert($record);
+        return true;
     }
 
     private function parseSummary($text)
@@ -398,28 +245,4 @@ class SpiderChinaCourt extends PHPCrawler
 
         return $summary;
     }
-
-    public function addStartingUrls($url)
-    {
-        $this->starting_urls[] = $url;
-    }
 }
-
-$pid = posix_getpid();
-
-file_put_contents('spider_' . SpiderChinaCourt::MAGIC . '.pid', $pid);
-gsettings()->debug = false;
-
-gsettings()->url_cache_type = URL_CACHE_IN_MEMORY;
-gsettings()->enable_resume = false;
-gsettings()->number_of_process = 1;
-
-
-$spider = new SpiderChinaCourt();
-$spider->setFeed(SpiderChinaCourt::$SeedConf[0]);
-
-for ($i=1; $i < count(SpiderChinaCourt::$SeedConf); $i++) {
-    $spider->addStartingUrls(SpiderChinaCourt::$SeedConf[$i]);
-}
-
-$spider->run();

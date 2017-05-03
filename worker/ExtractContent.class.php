@@ -163,7 +163,7 @@ class ExtractContent
         "title"     => array("公文名称", "信息名称", "标题", "名称",),
         "tags"      => array("效力级别","所属类别", "主题分类","信息类别","分类"),
         "index_ori_no"  => array("索引号","信息索引","索取号"),
-        "doc_ori_no"    => array("文号","发文字号","文件编号"),
+        "doc_ori_no"    => array("文号","发文字号","文件编号","发布文号"),
         "publish_time"  => array("发文日期","发布日期","发布时间","颁布日期","生产日期"),
         "cwrq_time" => array("成文日期", "生成日期"),
         "keywords"  => array("主题词"),
@@ -196,6 +196,10 @@ class ExtractContent
         "/(\x{7B2C}[\x{4E00}\x{4E8C}\x{4E09}\x{56DB}\x{4E94}\x{516D}\x{4E03}\x{516B}\x{4E5D}\x{5341}]+\x{7AE0})/u"  => "zhang",
         "/(\x{7B2C}[\x{4E00}\x{4E8C}\x{4E09}\x{56DB}\x{4E94}\x{516D}\x{4E03}\x{516B}\x{4E5D}\x{5341}]+\x{8282})/u"  => "section",
         "/(\x{7B2C}[\x{4E00}\x{4E8C}\x{4E09}\x{56DB}\x{4E94}\x{516D}\x{4E03}\x{516B}\x{4E5D}\x{5341}]+\x{6761})/u"  => "tiao",
+    );
+
+    public static $DefaultAttachments = array(
+        "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui",
     );
 
     /**
@@ -698,7 +702,7 @@ class ExtractContent
                     if ($element->hasAttribute('href')) {
                         $href = $element->getAttribute('href');
                         $href = Formatter::formaturl($this->url, $href);
-                        $r = preg_match("/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui", $href);
+                        $r = preg_match(self::$DefaultAttachments[0], $href);
                         if (!empty($r)) {
                             $attachment = array(
                                 'title' => trim($element->nodeValue),
