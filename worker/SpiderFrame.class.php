@@ -189,6 +189,9 @@ class SpiderFrame extends PHPCrawler
             }
         }
 
+        if (gsettings()->debug) {
+            exit(0);
+        }
         return true;
     }
 

@@ -1,16 +1,16 @@
 <?php
 
 /**
- * 新疆金融办公室
- * http://jrb.xinjiang.gov.cn/tzgg/index.htm
+ * 安杰律师事务所
+ * http://www.anjielaw.com/news/media/index.html
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/5/2
- * Time: PM4:16
+ * Date: 17/5/3
+ * Time: PM4:12
  */
-define("CRAWLER_NAME", "spider-jrb.xinjiang.gov");
+define("CRAWLER_NAME", md5("spider-anjielaw.com"));
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderJrbXinJiangGov extends SpiderFrame
+class SpiderAnjielawCom extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -19,27 +19,30 @@ class SpiderJrbXinJiangGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://jrb\.xinjiang\.gov\.cn/tzgg/index\.htm",
+        "http://www.anjielaw.com/news/index.html",
+        "http://www.anjielaw.com/news/media/index.html",
+        "http://www.anjielaw.com/publication/research/index.html",
     );
 
     protected $ContentHandlers = array(
-        "#http://jrb\.xinjiang\.gov\.cn/tzgg/index([0-9_]+)?\.htm# i" => "handleListPage",
-        "#/[0-9]{4,6}/[0-9]+\.htm# i"  => "handleDetailPage",
+        "#http://www\.anjielaw\.com/news/industry/[0-9]+\.html# i" => "handleDetailPage",
+        "#http://www\.anjielaw\.com/news/media/index\.html# i" => "handleListPage",
+        "#http://www\.anjielaw\.com/news/index\.html# i"   => "handleListPage",
+        "#http://www\.anjielaw\.com/publication/research/index\.html# i"    => "handleListPage",
+        "#http://www\.anjielaw\.com/news/media/[0-9]+\.html# i" => "handleDetailPage",
+        "#http://www\.anjielaw\.com/publication/research/list_[0-9]+_[0-9]+\.html#" => "handleListPage",
+        "#http://www\.kwm\.com/zh/knowledge/insights/[a-zA-Z\-]+-[0-9]+# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderJrbXinJiangGov constructor.
+     * SpiderKwmCom constructor.
      */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * @param PHPCrawlerDocumentInfo $DocInfo
-     * @return bool|XlegalLawContentRecord
-     */
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $source = $DocInfo->source;
@@ -48,19 +51,43 @@ class SpiderJrbXinJiangGov extends SpiderFrame
 
         $extract->parse();
 
-        $content = $extract->getContent();
+        $doc = $extract->getExtractor()->extractor->document();
+
+        $articles = $doc->query("//div[@class='article-box']");
+
+        $divHd = $doc->query("//div[@class='hd']/h6");
+        $content = '';
+        if (!empty($articles) && $articles instanceof DOMNodeList) {
+            $source = $extract->toHTML($articles->item(0));
+            $extract1 = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
+            $extract1->parse();
+            $content = $extract1->toText();
+        }
+
+        if (empty($content)) {
+            $content = $extract->getContent();
+        }
+
+        if (!empty($divHd) && $divHd instanceof DOMNodeList) {
+            $divHd = trim($divHd->item(0)->nodeValue);
+            preg_match("/([0-9]{4})\/([0-9]{2})\/([0-9]{2})/u", $divHd, $matches);
+            if (!empty($matches) && count($matches) > 3) {
+                $extract->publish_time = strtotime(sprintf("%s-%s-%s", $matches[1], $matches[2], $matches[3]));
+            }
+        }
+
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
         $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
-        $record->author = $extract->author;
+        $record->author = "安杰律师事务所";
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
         $record->publish_time = $extract->publish_time;
         $record->t_valid = $extract->t_valid;
         $record->t_invalid = $extract->t_invalid;
         $record->negs = implode(",", $extract->negs);
-        $record->tags = $extract->tags;
+        $record->tags = "律所实务";
         $record->simhash = '';
         if (!empty($extract->attachments)) {
             $record->attachment = json_encode($extract->attachments, JSON_UNESCAPED_UNICODE);

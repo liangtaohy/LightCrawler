@@ -1,16 +1,15 @@
 <?php
 
 /**
- * 新疆金融办公室
- * http://jrb.xinjiang.gov.cn/tzgg/index.htm
+ * 金杜律师事务所
+ * http://www.kwm.com/zh/knowledge
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/5/2
- * Time: PM4:16
+ * Date: 17/5/3
+ * Time: PM2:38
  */
-define("CRAWLER_NAME", "spider-jrb.xinjiang.gov");
+define("CRAWLER_NAME", "spider-kwm.com");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
-
-class SpiderJrbXinJiangGov extends SpiderFrame
+class SpiderKwmCom extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -19,48 +18,53 @@ class SpiderJrbXinJiangGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://jrb\.xinjiang\.gov\.cn/tzgg/index\.htm",
+        "http://www.kwm.com/zh/knowledge/insights",
     );
 
     protected $ContentHandlers = array(
-        "#http://jrb\.xinjiang\.gov\.cn/tzgg/index([0-9_]+)?\.htm# i" => "handleListPage",
-        "#/[0-9]{4,6}/[0-9]+\.htm# i"  => "handleDetailPage",
+        "#http://www\.kwm\.com/zh/knowledge/insights\?# i" => "handleListPage",
+        "#http://www\.kwm\.com/zh/knowledge/insights/[a-zA-Z\-]+-[0-9]+# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderJrbXinJiangGov constructor.
+     * SpiderKwmCom constructor.
      */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * @param PHPCrawlerDocumentInfo $DocInfo
-     * @return bool|XlegalLawContentRecord
-     */
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $source = $DocInfo->source;
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
 
+        $extract->keep_img = true;
+
         $extract->parse();
 
-        $content = $extract->getContent();
+        $doc = $extract->extractor->document();
+        $titles = $doc->query("//h1[@class='banner-title cf']");
+
+        if (!empty($titles) && $titles instanceof DOMNodeList) {
+            $extract->title = trim($titles->item(0)->nodeValue);
+        }
+
+        $content = $extract->getContent(true);
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
         $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
-        $record->author = $extract->author;
+        $record->author = "金杜律师事务所";
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
         $record->publish_time = $extract->publish_time;
         $record->t_valid = $extract->t_valid;
         $record->t_invalid = $extract->t_invalid;
         $record->negs = implode(",", $extract->negs);
-        $record->tags = $extract->tags;
+        $record->tags = "律所实务";
         $record->simhash = '';
         if (!empty($extract->attachments)) {
             $record->attachment = json_encode($extract->attachments, JSON_UNESCAPED_UNICODE);

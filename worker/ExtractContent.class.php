@@ -23,6 +23,7 @@ class ExtractContent
 
     public $skip_td_childs = false;
 
+    public $keep_img = false;
     /**
      * @var Extractor
      */
@@ -252,6 +253,11 @@ class ExtractContent
                         case "ol":
                         case "li":
                             $text[] = "\n";
+                            break;
+                        case "img":
+                            if ($this->keep_img && $item->hasAttribute('src')) {
+                                $text[] = "[tag:img:" . Formatter::formaturl($this->url, $item->getAttribute('src')) . "]" . "\n";
+                            }
                             break;
                     }
 
@@ -516,12 +522,8 @@ class ExtractContent
             $this->meta_title = "";
         }
 
-        foreach ($this->title_texts as $tag_name => $title_text) {
-            $tag_name = strtolower($tag_name);
-            if ($tag_name == "h1" || $tag_name == "h2" || $tag_name == "h3") {
-                $this->title = $title_text;
-                break;
-            }
+        if (isset($this->title_texts['h1']) && !empty($this->title_texts['h1'])) {
+            $this->title = $this->title_texts['h1'];
         }
 
         return $this->meta_title;
