@@ -10,6 +10,8 @@ class SpiderFrame extends PHPCrawler
 {
     const MAGIC = __CLASS__;
 
+    const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36";
+
     public $storage_root = "/mnt/open-xdp/spider";
 
     protected $raw_data_dir = "/raw_data";
@@ -165,6 +167,7 @@ class SpiderFrame extends PHPCrawler
         }
 
         if (empty($has_matched)) {
+            echo "enter handler handleListPage (no match)" . PHP_EOL;
             $this->handleListPage($DocInfo);
         }
 
@@ -415,5 +418,32 @@ class SpiderFrame extends PHPCrawler
         $notice .= " bytes-received:" . $report->bytes_received;
         $notice .= " process-runtime:" . $report->process_runtime;
         echo $notice . PHP_EOL;
+    }
+
+    /**
+     * @param array $records
+     */
+    protected function insert2urls(array $records)
+    {
+        foreach ($records as $record) {
+            $map_key = md5($record->url);
+            $ctime = Utils::microTime();
+            $value = array("priority_level" => 0,
+                "distinct_hash" => $map_key,
+                "link_raw" => '',
+                "linkcode" => '',
+                "linktext" => $record->title,
+                "refering_url" => $record->refering_url,
+                "url_rebuild" => $record->url,
+                "is_redirect_url" => 0,
+                "url_link_depth" => 1,
+                "spider"    => md5(CRAWLER_NAME),
+                "ctime" => $ctime,
+                "mtime" => 0,
+            );
+
+            echo "detail-url: " . json_encode($value, JSON_UNESCAPED_UNICODE) . PHP_EOL;
+            DaoUrlCache::getInstance()->insert($value);
+        }
     }
 }
