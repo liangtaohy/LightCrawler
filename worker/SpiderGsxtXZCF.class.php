@@ -17,7 +17,7 @@ class SpiderGsxtXZCF
 
     const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36";
 
-    const COOKIE = "JSESSIONID=19C36C5CF9FB9C51813DE94E57CED8DE-n1:-1; __jsluid=ebd22c504b43184bd9d9c43cda345936; UM_distinctid=15bad68f9e023-0be5e9f3010ddf-123b6e5f-1fa400-15bad68f9e1547; CNZZDATA1261033118=738687157-1493260143-http%253A%252F%252Fwww.gsxt.gov.cn%252F%7C1493260143";
+    const COOKIE = "__jsluid=ebd22c504b43184bd9d9c43cda345936; UM_distinctid=15bad68f9e023-0be5e9f3010ddf-123b6e5f-1fa400-15bad68f9e1547; JSESSIONID=077222A18C0BEA3103D0E43DB11A1A7A-n1:0; CNZZDATA1261033118=738687157-1493260143-http%253A%252F%252Fwww.gsxt.gov.cn%252F%7C1493886609; tlb_cookie=24query_8080; Hm_lvt_cdb4bc83287f8c1282df45ed61c4eac9=1493262990,1493890966; Hm_lpvt_cdb4bc83287f8c1282df45ed61c4eac9=1493890977";
 
     const AJAX_QUERY_INFO_URL = "http://www.gsxt.gov.cn/Affiche-query-info-getAffichePunishmentInfo.html?areaId=";
 
@@ -138,6 +138,10 @@ class SpiderGsxtXZCF
                                 $record->doc_ori_no = $case['penDecNo'];
                                 $record->url = sprintf(self::DETAIL_URL, $case['caseId']);
                                 $record->url_md5 = md5($record->url);
+
+                                if (DaoXlegalLawContentRecord::getInstance()->ifUrlMd5Existed($record)) {
+                                    continue;
+                                }
 
                                 $res1 = bdHttpRequest::get($record->url, array(), array(), array(
                                     'Cookie'    => !empty($cookie) ? $cookie : self::COOKIE,

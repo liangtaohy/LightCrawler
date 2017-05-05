@@ -135,7 +135,7 @@ class ExtractContent
     );
 
     public static $DefaultSpecialClasses = array(
-        "//div[@class='nav']","//div[@class='container top']","//div[@class='head container']"
+        "//div[@class='nav']","//div[@class='container top']","//div[@class='head container']", "//div[@id='footer']"
     );
 
     public static $DefaultFooterRules = array(
@@ -169,8 +169,8 @@ class ExtractContent
         "cwrq_time" => array("成文日期", "生成日期"),
         "keywords"  => array("主题词"),
         "t_valid"   => array("执行日期", "生效日期", "实施日期", "有效时间"),
-        "t_invalid" => array("失效日期", "时效性"),
-        //"dump"  => array("分享到","时效性", "免责声明"),
+        "t_invalid" => array("失效日期", "时效性", "废止日期"),
+        "dump"  => array("有效性"),
     );
 
     public static $DefaultSummaryPatterns = array(
@@ -257,6 +257,9 @@ class ExtractContent
                         case "img":
                             if ($this->keep_img && $item->hasAttribute('src')) {
                                 $text[] = "[tag:img:" . Formatter::formaturl($this->url, $item->getAttribute('src')) . "]" . "\n";
+                                if ($item->parentNode->nodeName == "p") {
+                                    $this->textP[] = "[tag:img:" . Formatter::formaturl($this->url, $item->getAttribute('src')) . "]" . "\n";
+                                }
                             }
                             break;
                     }
@@ -372,9 +375,15 @@ class ExtractContent
                 }
 
                 $len = mb_strlen($needle, "UTF-8");
-                $t = mb_substr($index_str, $p + mb_strlen($needle, "UTF-8"), 1);
 
-                if ($t == ":" || $t == "：" || $t == "】" || $t == "|") {
+                if (mb_substr($index_str, $p - 1, 1) == '[') {
+                    $p = $p - 1;
+                    $len += 1;
+                }
+
+                $t = mb_substr($index_str, $p + $len, 1);
+
+                if ($t == ":" || $t == "：" || $t == "】" || $t == "|" || $t == "]") {
                     $reverse[] = $p;
                     $summary[$field] = array("pos"=>$p, "len" => $len + 1);
                 }
@@ -486,7 +495,7 @@ class ExtractContent
         foreach ($text_lines as $text_line) {
             $text_line = preg_replace("/[\s\x{3000}\x{3010}]+/u", "", trim($text_line));
             if (!empty($text_line)) {
-                preg_match("/^([\x{4e00}-\x{9fa5}\\s+]{2,8})[\x{FF1A}\x{3011}:\|].*/ui", $text_line, $matches) ? $index_blocks[] = $text_line : null;
+                preg_match("/^([\[\x{4e00}-\x{9fa5}\\s+]{2,8})[\x{FF1A}\x{3011}:\|\]].*/ui", $text_line, $matches) ? $index_blocks[] = $text_line : null;
             }
         }
 
@@ -522,9 +531,9 @@ class ExtractContent
             $this->meta_title = "";
         }
 
-        if (isset($this->title_texts['h1']) && !empty($this->title_texts['h1'])) {
-            $this->title = $this->title_texts['h1'];
-        }
+        //if (isset($this->title_texts['h1']) && !empty($this->title_texts['h1'])) {
+        //    $this->title = $this->title_texts['h1'];
+        //}
 
         return $this->meta_title;
     }
@@ -871,6 +880,69 @@ class ExtractContent
         return $this;
     }
 
+    /**
+     * remove nodes
+     *
+     * @param array $remove_childs
+     * @return $this
+     */
+    public function deleteNodes(array $remove_childs = array())
+    {
+        $delete = array();
+        foreach ($remove_childs as $remove_child) {
+            $delete[] = $remove_child;
+        }
+
+        foreach ($delete as $item) {
+            $item->parentNode->removeChild($item);
+        }
+
+        return $this;
+    }
+
+    /**
+     * fetch link blocks
+     * @param $root
+     * @param array $blocks
+     * @return $this
+     */
+    public function linkBlocks($root, array &$blocks)
+    {
+        if ($root->hasChildNodes()) {
+            $list = $root->childNodes;
+            foreach ($list as $item) {
+                if ($item->nodeType == XML_ELEMENT_NODE) {
+                    if ($item->nodeName == 'div' || $item->nodeName == 'ul' || $item->nodeName == 'ol') {
+                        $a_text_length = 0; // 链接文本总度
+                        $avg_a_length = 0; // 链接文本平均长度
+                        $block_text_length = mb_strlen(preg_replace("/(\s+)/u", "", trim($item->nodeValue)), "UTF-8");
+
+                        $links = $item->getElementsByTagName('a');
+                        if (!empty($links) && $links instanceof DOMNodeList) {
+                            $length = $links->length;
+
+                            foreach ($links as $link) {
+                                $a_text = preg_replace("/(\s+)/u", "", trim($link->nodeValue));
+                                if (empty($a_text)) {
+                                    continue;
+                                }
+                                $a_text_length += mb_strlen($a_text, "UTF-8");
+                            }
+
+                            $avg_a_length = intval($a_text_length / $length);
+                        }
+
+                        if ($a_text_length/$block_text_length > 0.6 && $avg_a_length !== 0 && 1 < $avg_a_length && $avg_a_length < 6) {
+                            $blocks[] = $item;
+                        }
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
     protected function traverseTree($root, &$removechilds)
     {
         if ($root->hasChildNodes()) {
@@ -906,36 +978,38 @@ class ExtractContent
     {
         if (isset($this->extractor)) return $this;
 
-        if (!empty($this->raw_content)) {
-            $this->extractor = new Extractor($this->raw_content, $this->url);
-            return $this;
-        }
+        if (empty($this->raw_content)) {
+            $pos = strpos($this->url, "http://");
 
-        $raw = '';
-        $pos = strpos($this->url, "http://");
-
-        if ($pos === 0) {
-            $baseurl = $this->url;
-            $raw = bdHttpRequest::get($this->url);
-            $content_type = $raw->getHeader("Content-Type");
-            $prefix = "";
-            if (!empty($content_type)) {
-                preg_match("/[;]?charset=[^\w]?([-\w]+)/i", strtolower($content_type), $matches);
-                if (!empty($matches) && is_array($matches) && count($matches) > 1) {
-                    $charset = $matches[1];
-                    $prefix = '<meta http-equiv="Content-Type" content="text/html; charset=' . $charset . '"/>'. "\n";
+            if ($pos === 0) {
+                $raw = bdHttpRequest::get($this->url);
+                $content_type = $raw->getHeader("Content-Type");
+                $prefix = "";
+                if (!empty($content_type)) {
+                    preg_match("/[;]?charset=[^\w]?([-\w]+)/i", strtolower($content_type), $matches);
+                    if (!empty($matches) && is_array($matches) && count($matches) > 1) {
+                        $charset = $matches[1];
+                        $prefix = '<meta http-equiv="Content-Type" content="text/html; charset=' . $charset . '"/>'. "\n";
+                    }
                 }
+                $this->raw_content = $prefix . $raw->getBody();
             }
-            $raw = $prefix . $raw->getBody();
+
+            $pos = strpos($this->url, "/");
+
+            if ($pos === 0) {
+                $this->raw_content = $this->loadFromFile($this->url);
+            }
         }
 
-        $pos = strpos($this->url, "/");
-
-        if ($pos === 0) {
-            $raw = $this->loadFromFile($this->url);
-        }
-
-        $this->extractor = new Extractor($raw, $this->baseurl);
+        $patterns = array(
+            chr(13)
+        );
+        $replaces = array(
+            '\n'
+        );
+        $this->raw_content = str_replace($patterns, $replaces, $this->raw_content);
+        $this->extractor = new Extractor($this->raw_content, $this->url);
         return $this;
     }
 
