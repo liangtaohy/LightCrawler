@@ -14,7 +14,7 @@ class SpiderZhengceBeijingGov extends SpiderFrame
     const MAGIC = __CLASS__;
 
     static $SeedConf = array(
-        "http://zfxxgk.nea.gov.cn/index.htm",
+        "http://zhengce.beijing.gov.cn/zyk_search_zc/searchForZhengCe",
     );
 
     protected $ContentHandlers = array(
@@ -38,7 +38,7 @@ class SpiderZhengceBeijingGov extends SpiderFrame
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
 
         $extract->keep_img = true;
-        
+
         $document = $extract->getExtractor()->extractor->domDocument();
         $body = $document->getElementsByTagName("body")->item(0);
 
