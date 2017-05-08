@@ -1,16 +1,16 @@
 <?php
 
 /**
- * 炜衡律师事务所
- * http://www.whlaw.cn/Lawnews/index/p/2.html
+ *
+ * http://www.junhe.com/law-reviews
  * User: Liang Tao (liangtaohy@163.com)
  * Date: 17/5/8
- * Time: PM3:45
+ * Time: PM4:36
  */
-define("CRAWLER_NAME", "spider-www.whlaw.cn");
+define("CRAWLER_NAME", md5("spider-www.junhe.com"));
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderWhlawCn extends SpiderFrame
+class SpiderJunheCom extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -19,24 +19,24 @@ class SpiderWhlawCn extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://www.whlaw.cn/Lawnews/index/p/1.html",
+        "http://www.junhe.com/law-reviews?year=2017"
     );
 
     protected $ContentHandlers = array(
-        "#http://www\.whlaw\.cn/Lawnews/index/p/[0-9]+\.html# i" => "void",
-        "#http://www\.whlaw\.cn/Index/Lawnews/detail/id/[0-9]+\.html# i"    => "handleDetailPage",
-        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
+        "#http://www\.junhe\.com/law\-reviews/[0-9]+$# i"   => "handleDetailPage",
+        "#http://www\.junhe\.com/law\-reviews\?(year=[0-9]+&)?page=[0-9]+# i" => "handleListPage",
+        "#/.*\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderSjrShGov constructor.
+     * SpiderJunheCom constructor.
      */
     public function __construct()
     {
         parent::__construct();
     }
 
-    // h3 class="news_title"
+    // printArea
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $source = $DocInfo->source;
@@ -45,29 +45,29 @@ class SpiderWhlawCn extends SpiderFrame
 
         $doc = $extract->getExtractor()->extractor->document();
         $document = $extract->getExtractor()->extractor->domDocument();
-        $title = $doc->query("//h3[@class='news_title']")->item(0)->nodeValue;
+        $main_stream = $document->saveHTML($doc->query("//div[@id='printArea']")->item(0));
 
-        $publish_time = $doc->query("//p[@class='newstime']")->item(0)->nodeValue;
+        $extract1 = new ExtractContent($DocInfo->url, $DocInfo->url, $main_stream);
 
-        $zcontent = $document->saveHTML($doc->query("//div[@class='zcontent']")->item(0));
-
-        $extract1 = new ExtractContent($DocInfo->url, $DocInfo->url, $zcontent);
         $extract1->parse();
         $content = $extract1->getContent();
 
         if (empty($content)) {
             $extract->parse();
+
             $content = $extract->getContent();
         }
+
+        $title = trim($doc->query("//h1[@class='d-title']")->item(0)->nodeValue);
 
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
         $record->title = $title;
-        $record->author = "炜衡律师事务所";
+        $record->author = "君合律师事务所";
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
-        $record->publish_time = !empty($publish_time) ? strtotime($publish_time) : $extract->publish_time;
+        $record->publish_time = $extract->publish_time;
         $record->t_valid = $extract->t_valid;
         $record->t_invalid = $extract->t_invalid;
         $record->negs = implode(",", $extract->negs);
@@ -102,6 +102,19 @@ class SpiderWhlawCn extends SpiderFrame
             $record->simhash = $simhash;
         }
 
+        $doc = $extract->extractor->document();
+        if (empty($record->publish_time)) {
+            $biaoti_s = $doc->query("//span[@class='biaoti_s']");
+            if (!empty($biaoti_s) && $biaoti_s instanceof DOMNodeList) {
+                foreach ($biaoti_s as $biaoti_) {
+                    preg_match("#([0-9]{4})-([0-9]{2})-([0-9]{2})# i", $biaoti_->nodeValue, $matches);
+                    if (!empty($matches) && count($matches) > 3) {
+                        $record->publish_time = strtotime(sprintf("%s-%s-%s", $matches[1], $matches[2], $matches[3]));
+                        break;
+                    }
+                }
+            }
+        }
 
         $record->type = DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;
