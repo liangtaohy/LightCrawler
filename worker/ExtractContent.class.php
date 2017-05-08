@@ -168,7 +168,7 @@ class ExtractContent
         "publish_time"  => array("发文日期","发布日期","发布时间","颁布日期","生产日期","时间"),
         "cwrq_time" => array("成文日期", "生成日期"),
         "keywords"  => array("主题词"),
-        "t_valid"   => array("执行日期", "生效日期", "实施日期", "有效时间"),
+        "t_valid"   => array("执行日期", "生效日期", "实施日期", "有效时间", "有效期"),
         "t_invalid" => array("失效日期", "时效性", "废止日期"),
         "dump"  => array("有效性"),
     );
@@ -934,6 +934,8 @@ class ExtractContent
 
                         if ($a_text_length/$block_text_length > 0.6 && $avg_a_length !== 0 && 1 < $avg_a_length && $avg_a_length < 6) {
                             $blocks[] = $item;
+                        } else {
+                            $this->linkBlocks($item, $blocks);
                         }
                     }
                 }

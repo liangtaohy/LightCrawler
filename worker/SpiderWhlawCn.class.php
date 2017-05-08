@@ -1,63 +1,72 @@
 <?php
 
 /**
- * http://zhengce.beijing.gov.cn/zyk_search_zc/searchForZhengCe
+ * http://www.whlaw.cn/Lawnews/index/p/2.html
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/5/4
- * Time: PM6:43
+ * Date: 17/5/8
+ * Time: PM3:45
  */
-define("CRAWLER_NAME", "spider-zhengce.beijing.gov.cn");
+define("CRAWLER_NAME", "spider-www.whlaw.cn");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderZhengceBeijingGov extends SpiderFrame
+class SpiderWhlawCn extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
+    /**
+     * Seed Conf
+     * @var array
+     */
     static $SeedConf = array(
-        "http://zhengce.beijing.gov.cn/zyk_search_zc/searchForZhengCe",
-        "http://www.beijing.gov.cn/zhuanti/ggfw/htsfwbxzzt/",
+        "http://www.whlaw.cn/Lawnews/index/p/1.html",
     );
 
     protected $ContentHandlers = array(
-        "#http://www.beijing.gov.cn/zhuanti/ggfw/htsfwbxzzt/$# i"   => "void",
-        "#http://zhengce\.beijing\.gov\.cn/zyk_search_zc/searchForZhengCe(\?nothing=nothing&pageBean\.currentPage=[0-9]+&pageBean\.itemsPerPage=[0-9]+)?# i"    => "handleListPage",
-        "#http://zhengce\.beijing\.gov\.cn/library/[0-9]+/[0-9]+/[0-9]+/[0-9]+/[0-9]+/[0-9]+/index\.html# i"   => "handleDetailPage",
-        "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui" => "handleAttachment",
+        "#http://www\.whlaw\.cn/Lawnews/index/p/[0-9]+\.html# i" => "void",
+        "#http://www\.whlaw\.cn/Index/Lawnews/detail/id/[0-9]+\.html# i"    => "handleDetailPage",
+        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderZfxxgkNeaGov constructor.
+     * SpiderSjrShGov constructor.
      */
     public function __construct()
     {
         parent::__construct();
     }
 
+    // h3 class="news_title"
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $source = $DocInfo->source;
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
 
-        $extract->keep_img = true;
-
+        $doc = $extract->getExtractor()->extractor->document();
         $document = $extract->getExtractor()->extractor->domDocument();
-        $body = $document->getElementsByTagName("body")->item(0);
+        $title = $doc->query("//h3[@class='news_title']")->item(0)->nodeValue;
 
-        $blocks = array();
-        $extract->linkBlocks($body, $blocks)->deleteNodes($blocks);
+        $publish_time = $doc->query("//p[@class='newstime']")->item(0)->nodeValue;
 
-        $extract->parse();
+        $zcontent = $document->saveHTML($doc->query("//div[@class='zcontent']")->item(0));
 
-        $content = $extract->getContent();
+        $extract1 = new ExtractContent($DocInfo->url, $DocInfo->url, $zcontent);
+        $extract1->parse();
+        $content = $extract1->getContent();
+
+        if (empty($content)) {
+            $extract->parse();
+            $content = $extract->getContent();
+        }
+
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
-        $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
+        $record->title = $title;
         $record->author = $extract->author;
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
-        $record->publish_time = $extract->publish_time;
+        $record->publish_time = !empty($publish_time) ? strtotime($publish_time) : $extract->publish_time;
         $record->t_valid = $extract->t_valid;
         $record->t_invalid = $extract->t_invalid;
         $record->negs = implode(",", $extract->negs);

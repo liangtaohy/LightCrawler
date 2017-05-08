@@ -7,7 +7,7 @@
  * Date: 17/5/3
  * Time: AM11:10
  */
-define("CRAWLER_NAME", md5("spider-ginfo.mohurd.gov"));
+define("CRAWLER_NAME", "spider-ginfo.mohurd.gov");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderGinfoMohurdGov extends SpiderFrame
@@ -22,7 +22,7 @@ class SpiderGinfoMohurdGov extends SpiderFrame
     );
 
     protected $ContentHandlers = array(
-        //"#/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i"  => "handleDetailPage",
+        "#/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i"  => "handleDetailPage",
         "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui" => "handleAttachment",
     );
 
@@ -35,8 +35,11 @@ class SpiderGinfoMohurdGov extends SpiderFrame
     }
 
     // javascript:__doPostBack(&#39;ctl00$lbtPageDown&#39;,&#39;&#39;)
-    protected function doPostBack(DOMDocument $document, $eventTarget, $eventArgument)
+    protected function doPostBack(DOMDocument $document, $eventTarget = '', $eventArgument = '')
     {
+        if (empty($eventArgument) || empty($eventArgument)) {
+            return false;
+        }
         $theForm = array();
         $theForm['__EVENTTARGET'] = $eventTarget;
         $theForm['__EVENTARGUMENT'] = $eventArgument;
@@ -108,16 +111,21 @@ class SpiderGinfoMohurdGov extends SpiderFrame
                 foreach ($links as $li) {
                     if ($li->hasAttribute('href')) {
                         $href = trim($li->getAttribute('href'));
-                        $href = Formatter::formaturl($DocInfo->url, $href);
-                        $record = new stdClass();
-                        $record->url = $href;
-                        $record->title = $li->nodeValue;
-                        $record->refering_url = $DocInfo->url;
-                        $records[] = $record;
+                        if (preg_match("#/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i", $href)) {
+                            $href = Formatter::formaturl($DocInfo->url, $href);
+                            $record = new stdClass();
+                            $record->url = $href;
+                            $record->title = $li->nodeValue;
+                            $record->refering_url = $DocInfo->url;
+                            $records[] = $record;
+                        }
                     }
                 }
-                echo 'urls: ' . json_encode($records, JSON_UNESCAPED_UNICODE);
-                //$this->insert2urls($records);
+                if (gsettings()->debug) {
+                    echo 'urls: ' . json_encode($records, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $this->insert2urls($records);
+                }
             }
 
             preg_match("/\x{5171}([0-9]+)\x{9875}/u", $DocInfo->source, $matches);
@@ -137,8 +145,11 @@ class SpiderGinfoMohurdGov extends SpiderFrame
             }
 
             sleep(rand(1,5));
+            if (empty($theForm)) {
+                return array();
+            }
             try {
-                $res = bdHttpRequest::post("http://ginfo.mohurd.gov.cn/", $theForm, $cookies, array(
+                $res = bdHttpRequest::post("http://ginfo.mohurd.gov.cn/", $theForm, $cookiesArr, array(
                     "User-Agent"    => SpiderFrame::USER_AGENT
                 ));
 

@@ -1,36 +1,76 @@
 <?php
 
 /**
- * http://zhengce.beijing.gov.cn/zyk_search_zc/searchForZhengCe
+ * 北京市发展改革委
+ * http://www.bjpc.gov.cn/zwxx/ztzl/yfxz/xzxk_sgs/
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/5/4
- * Time: PM6:43
+ * Date: 17/5/5
+ * Time: PM5:06
  */
-define("CRAWLER_NAME", "spider-zhengce.beijing.gov.cn");
+define("CRAWLER_NAME", md5("spider-bjpc.gov.cn"));
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderZhengceBeijingGov extends SpiderFrame
+class SpiderBjpcGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
+    /**
+     * Seed Conf
+     * @var array
+     */
     static $SeedConf = array(
-        "http://zhengce.beijing.gov.cn/zyk_search_zc/searchForZhengCe",
-        "http://www.beijing.gov.cn/zhuanti/ggfw/htsfwbxzzt/",
+        "http://www.bjpc.gov.cn/zwxx/ztzl/yfxz/xzxk_sgs/",
     );
 
     protected $ContentHandlers = array(
-        "#http://www.beijing.gov.cn/zhuanti/ggfw/htsfwbxzzt/$# i"   => "void",
-        "#http://zhengce\.beijing\.gov\.cn/zyk_search_zc/searchForZhengCe(\?nothing=nothing&pageBean\.currentPage=[0-9]+&pageBean\.itemsPerPage=[0-9]+)?# i"    => "handleListPage",
-        "#http://zhengce\.beijing\.gov\.cn/library/[0-9]+/[0-9]+/[0-9]+/[0-9]+/[0-9]+/[0-9]+/index\.html# i"   => "handleDetailPage",
-        "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui" => "handleAttachment",
+        "#/[0-9]{6}/t[0-9_]+\.htm# i"   => "handleDetailPage",
+        "#http://www.bjpc.gov.cn/zwxx/ztzl/yfxz/[a-z]+_sgs/# i" => "handleListPage",
+        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderZfxxgkNeaGov constructor.
+     * SpiderBjpcGov constructor.
      */
     public function __construct()
     {
         parent::__construct();
+    }
+
+    /**
+     * @param PHPCrawlerDocumentInfo $DocInfo
+     * @return array
+     */
+    protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
+    {
+        $currentPage = 0;//所在页从0开始
+        $countPage = 0;//共多少页
+        preg_match("#var currentPage = ([0-9]+);# i", $DocInfo->source, $matches);
+        if (!empty($matches) && count($matches) > 1) {
+            $currentPage = intval($matches[1]);
+        }
+
+        unset($matches);
+        preg_match("#var countPage = ([0-9]+)# i", $DocInfo->source, $matches);
+        if (!empty($matches) && count($matches) > 1) {
+            $countPage = intval($matches[1]);
+        }
+
+        $nextPage = $currentPage+1;//下一页
+
+        $pages = array();
+
+        if($countPage>1&&$currentPage!=($countPage-1)) {
+            if ($DocInfo->url[strlen($DocInfo->url) - 1] == '/') {
+                $pages[] = $DocInfo->url . "index" . "_" . $nextPage . "." . "htm";
+            }
+        }
+
+        if (gsettings()->debug) {
+            var_dump($pages);
+            exit(0);
+        }
+
+        return $pages;
     }
 
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
@@ -39,16 +79,13 @@ class SpiderZhengceBeijingGov extends SpiderFrame
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
 
-        $extract->keep_img = true;
-
-        $document = $extract->getExtractor()->extractor->domDocument();
-        $body = $document->getElementsByTagName("body")->item(0);
-
         $blocks = array();
-        $extract->linkBlocks($body, $blocks)->deleteNodes($blocks);
-
+        $root = $extract->getExtractor()->extractor->domDocument()->getElementsByTagName('body')->item(0);
+        $extract->linkBlocks($root, $blocks)->deleteNodes($blocks);
         $extract->parse();
 
+        $doc = $extract->extractor->document();
+        $title = trim($doc->query("//h1[@class='dbox1']")->item(0)->nodeValue);
         $content = $extract->getContent();
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
@@ -63,6 +100,10 @@ class SpiderZhengceBeijingGov extends SpiderFrame
         $record->negs = implode(",", $extract->negs);
         $record->tags = $extract->tags;
         $record->simhash = '';
+
+        if (!empty($title)) {
+            $record->title = $title;
+        }
         if (!empty($extract->attachments)) {
             $record->attachment = json_encode($extract->attachments, JSON_UNESCAPED_UNICODE);
         }
