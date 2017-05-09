@@ -429,6 +429,10 @@ class SpiderFrame extends PHPCrawler
     protected function insert2urls(array $records)
     {
         foreach ($records as $record) {
+            if (empty($record->url)) {
+                continue;
+            }
+
             $map_key = md5($record->url);
             $ctime = Utils::microTime();
             $value = array("priority_level" => 0,

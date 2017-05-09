@@ -14,7 +14,7 @@
  * Date: 17/4/18
  * Time: PM6:02
  */
-define("CRAWLER_NAME", md5("spider-dy.sarft.gov"));
+define("CRAWLER_NAME", "spider-dy.sarft.gov");
 
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 

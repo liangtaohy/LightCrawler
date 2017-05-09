@@ -54,13 +54,13 @@ class SpiderTylawComCn extends SpiderFrame
                 $pages = array();
                 foreach ($links as $link) {
                     if ($link->hasAttribute("href")) {
-                        $record = new stdClass();
                         $href = Formatter::formaturl($DocInfo->url, trim($link->getAttribute("href")));
                         if (preg_match("#http://www\.tylaw\.com\.cn/CN/news_content\.aspx\?contentID=[0-9]+# i", $href)) {
+                            $record = new stdClass();
                             $record->url = $href;
                             $record->refering_url = $DocInfo->url;
                             $record->title = trim($link->nodeValue);
-                            $pages[] = $href;
+                            $pages[] = $record;
                         }
                     }
                 }
@@ -69,6 +69,7 @@ class SpiderTylawComCn extends SpiderFrame
                     var_dump($pages);
                     exit(0);
                 } else {
+                    var_dump($pages);
                     $this->insert2urls($pages);
                 }
 
