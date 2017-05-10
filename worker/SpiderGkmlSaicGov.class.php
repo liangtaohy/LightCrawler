@@ -14,7 +14,7 @@
  * Date: 17/4/18
  * Time: PM6:02
  */
-define("CRAWLER_NAME", "spider-dy.sarft.gov");
+define("CRAWLER_NAME", "spider-saic.gov.cn");
 
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
@@ -42,9 +42,11 @@ class SpiderGkmlSaicGov extends SpiderFrame
         "http://www.saic.gov.cn/gkml/2086/2100/list.html",
         "http://www.saic.gov.cn/zw/wjfb/index.html",
         "http://www.saic.gov.cn/fw/bsdt/gg/jzzf/index.html",
+        "http://www.saic.gov.cn/fw/bsdt/gg/qymcyh/index.html",
     );
 
     protected $ContentHandlers = array(
+        "#http://www\.saic\.gov\.cn/fw/bsdt/gg/qymcyh/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i"   => "handleDetailPage",
         "#http://gkml.saic.gov.cn/2086/2087/list([\_0-9]+)?\.html# i" => "handleListPage",
         "#http://www.saic.gov.cn/gkml/[0-9]{4}/[0-9]{4}/[0-9]{4}/list([\_0-9]+)?\.html# i"    => "handleListPage",
         "#http://www.saic.gov.cn/gkml/[0-9]{4}/[0-9]{4}/list([\_0-9]+)?\.html# i"   => "handleListPage",

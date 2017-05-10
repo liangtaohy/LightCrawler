@@ -200,7 +200,7 @@ class ExtractContent
     );
 
     public static $DefaultAttachments = array(
-        "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui",
+        "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|docx|pdf|txt|xls|ceb)/ui",
     );
 
     /**

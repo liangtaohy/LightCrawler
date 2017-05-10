@@ -27,6 +27,9 @@ class SpiderFrame extends PHPCrawler
     protected $LinkTextHandlers = array();
     protected $starting_urls = array();
 
+    protected $author = '';
+    protected $tag = '';
+
     /**
      * SpiderDepartment constructor.
      */
@@ -293,6 +296,14 @@ class SpiderFrame extends PHPCrawler
         }
 
 
+        if (!empty($this->author)) {
+            $record->author = $this->author;
+        }
+
+        if (!empty($this->tag)) {
+            $record->tags = $this->tag;
+        }
+        
         $record->type = DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;
         $record->url = $extract->baseurl;
