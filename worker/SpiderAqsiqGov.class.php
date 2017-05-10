@@ -25,7 +25,7 @@ class SpiderAqsiqGov extends SpiderFrame
     protected $ContentHandlers = array(
         "#/[0-9]{6}/t[0-9]{6,8}_[0-9]+\.htm# i"    => "handleDetailPage",
         "#http://www\.aqsiq\.gov\.cn/xxgk_13386/# i"   => "handleListPage",
-        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
+        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls|docx)# i" => "handleAttachment",
     );
 
     /**
