@@ -6,7 +6,7 @@
  * Date: 17/4/21
  * Time: PM5:52
  */
-define("CRAWLER_NAME", "spider-ndrc.gov.cn");
+define("CRAWLER_NAME", "spider-pbc.cn");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderPbcParser
