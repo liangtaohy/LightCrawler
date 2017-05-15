@@ -106,4 +106,13 @@ class DaoUrlCache extends DaoBase
     {
         $this->db->update("UPDATE urls SET in_process=0, processed=0 WHERE spider='{$spidername}'");
     }
+
+    /**
+     * @param $url_md5
+     * @return bool
+     */
+    public function deleteByUrlMd5($url_md5)
+    {
+        return $this->db->delete($this->_table_name, " distinct_hash={$url_md5}");
+    }
 }

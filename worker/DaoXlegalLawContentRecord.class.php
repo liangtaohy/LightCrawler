@@ -28,9 +28,10 @@ class DaoXlegalLawContentRecord extends DaoBase
 
     protected $_table_fields = array(
         self::TABLE_NAME  => array(
+            'id'    => 1,
             'doc_id'    => 'i', // '文档编号-content的md5',
             'doc_ori_no'    => 'i', // '发布文号(该值唯一，但可以为空)',
-            'type'      => 0, // '文档类型',
+            'type'      => 1, // '文档类型',
             'title'     => 'i', // '标题',
             'tags'      => 'i', // '分类标签',
             'content'   => 'i', // '正文',
@@ -38,14 +39,14 @@ class DaoXlegalLawContentRecord extends DaoBase
             'negs'      => 'i', // '命名实体',
             'author'    => 'i', // '颁布单位',
             'index_ori_no'  => 'i', // '原文索引号',
-            'publish_time'  => 0, // '发布时间',
-            't_valid'       => 0, // '生效时间',
-            't_invalid'     => 0, // '失效时间',
+            'publish_time'  => 1, // '发布时间',
+            't_valid'       => 1, // '生效时间',
+            't_invalid'     => 1, // '失效时间',
             'url'       => 'i', // '原文链接',
             'url_md5'   => 'i', // 'url md5',
-            'ctime'     => 0, // '入库时间',
+            'ctime'     => 1, // '入库时间',
             'simhash'   => 'i', // 'simhash值(去重使用)',
-            'status'    => 0, // '待确认'
+            'status'    => 1, // '待确认'
         )
     );
 

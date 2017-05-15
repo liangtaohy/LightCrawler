@@ -24,6 +24,7 @@ class SpiderDepartmentCirc extends PHPCrawler
      */
     static $SeedConf = array(
         "http://www.circ.gov.cn/web/site0/tab5176/",
+        "http://www.circ.gov.cn/web/site0/tab5178/",
         "http://www.circ.gov.cn/web/site0/tab7765/module27147/page1.htm",
         "http://www.circ.gov.cn/web/site0/tab7765/module27149/page2.htm",
         "http://www.circ.gov.cn/web/site0/tab7765/module27151/page2.htm",

@@ -22,13 +22,20 @@ class SpiderCsrcGov extends SpiderFrame
         "http://www.csrc.gov.cn/pub/newsite/xzcfw/xzcfjd/index.htm",
         "http://www.csrc.gov.cn/pub/newsite/xzcfw/scjrjd/index.htm",
         "http://www.csrc.gov.cn/pub/newsite/xzcfw/zlzgtz/index.htm",
+        "http://www.csrc.gov.cn/pub/newsite/flb/flfg/flxzsf/index.html",
+        "http://www.csrc.gov.cn/pub/newsite/flb/flfg/xzfg_8248/index.html",
+        "http://www.csrc.gov.cn/pub/newsite/flb/flfg/sfjs_8249/index.html",
+        "http://www.csrc.gov.cn/pub/newsite/flb/flfg/bmgz/zhl/index.html",
+        "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp?schn=832&years=2017&sinfo=&countpos=0&curpos=%E4%B8%BB%E9%A2%98%E5%88%86%E7%B1%BB&page=1",
     );
 
     protected $ContentHandlers = array(
-        "#http://www.csrc.gov.cn/pub/newsite/xzcfw/(xzcfjd|scjrjd|zlzgtz)/index([\_0-9]+)?\.htm# i" => "handleListPage",
-        "#http://www.csrc.gov.cn/pub/zjhpublic/[0-9A-Z]+/[0-9]+/t[0-9]+_[0-9]+\.htm# i" => "handleDetailPage",
-        //"#/t[0-9]+_[0-9]+\.html# i"  => "handleDetailPage",
-        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
+        "#http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp# i" => "handleListPage",
+        "#/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i"  => "handleDetailPage",
+        "#http://www\.csrc\.gov\.cn/pub/newsite/flb/flfg/# i"   => "handleListPage",
+        "#http://www\.csrc\.gov\.cn/pub/newsite/xzcfw/(xzcfjd|scjrjd|zlzgtz)/index([\_0-9]+)?\.htm# i" => "handleListPage",
+        "#http://www\.csrc\.gov\.cn/pub/zjhpublic/[0-9A-Z]+/[0-9]+/t[0-9]+_[0-9]+\.htm# i" => "handleDetailPage",
+        "#/.*\.(doc|docx|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
@@ -68,13 +75,101 @@ class SpiderCsrcGov extends SpiderFrame
 
     /**
      * @param PHPCrawlerDocumentInfo $DocInfo
+     * @return array|bool
+     */
+    public function computePages1(PHPCrawlerDocumentInfo $DocInfo)
+    {
+        $totalPatterns = array(
+            "#var m_nRecordCount = \"([0-9]+)\";# i",
+            "#var m_nRecordCount = ([0-9]+);# i",
+        );
+
+        $pagesizePatterns = array(
+            "#var m_nPageSize = ([0-9]+);# i",
+        );
+
+        $total = 0;
+        $pagesize = 0;
+
+        foreach ($totalPatterns as $totalPattern) {
+            $result = preg_match($totalPattern, $DocInfo->source, $matches);
+            if (!empty($result) && !empty($matches) && is_array($matches)) {
+                $total = intval($matches[1]);
+                break;
+            }
+            unset($matches);
+        }
+
+        if (empty($total)) {
+            echo "FATAL get total page failed: " . $DocInfo->url . PHP_EOL;
+            return true;
+        }
+
+        unset($result);
+        unset($matches);
+
+        foreach ($pagesizePatterns as $pagesizePattern) {
+            $result = preg_match($pagesizePattern, $DocInfo->source, $matches);
+            if (!empty($result) && !empty($matches) && is_array($matches)) {
+                $pagesize = intval($matches[1]);
+                break;
+            }
+            unset($matches);
+        }
+
+        if (empty($pagesize)) {
+            echo "FATAL get pagesize failed: " . $DocInfo->url . PHP_EOL;
+            return array(
+                'total' => $total,
+            );
+        }
+
+        $res = array(
+            'total' => $total,
+        );
+        $total = intval($total / $pagesize);
+        $res['pages'] = $total;
+        $res['pagesize'] = $pagesize;
+
+        return $res;
+    }
+
+    /**
+     * @param PHPCrawlerDocumentInfo $DocInfo
      * @return array
      */
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
-        $pager = $this->computePages($DocInfo);
+        $pages = array();
+        if (strpos($DocInfo->url, "http://www.csrc.gov.cn/wcm/govsearch/year_gkml_list.jsp") !== false) {
+            $pager = $this->computePages1($DocInfo);
+
+            for ($i = 1; $i <= $pager['pages']; $i++) {
+                $pages[] = preg_replace("#(page=[0-9]+)#", "page=" . $i, $DocInfo->url);
+            }
+
+            if (gsettings()->debug) {
+                var_dump($pages);
+                exit(0);
+            }
+
+            return $pages;
+        } else {
+            $pager = $this->computePages($DocInfo);
+        }
+
+        preg_match('#location\.href = url\+"([a-z]+)"\+"."\+"([a-z]+)";# i', $DocInfo->source, $matches);
+
         $sPageName = "index";
         $sPageExt = "htm";
+
+        if (!empty($matches) && count($matches) > 2) {
+            $sPageName = $matches[1];
+            $sPageExt = $matches[2];
+        } else {
+            echo "no matches" . PHP_EOL;
+            return array();
+        }
 
         $p = strrpos($DocInfo->url, "/");
         $prefix = substr($DocInfo->url, 0, $p + 1);

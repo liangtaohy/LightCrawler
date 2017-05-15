@@ -1,13 +1,16 @@
 <?php
 
 /**
- * 上海政府见多
- * http://sjr.sh.gov.cn/index.html - 上海金融办公室
+ * 上海政府网
+ * http://www.shanghai.gov.cn/nw2/nw2314/nw2319/nw12344/index.html
  * User: xlegal
  * Date: 17/4/22
  * Time: PM11:22
  */
-class SpiderShangHaiGov
+define("CRAWLER_NAME", "spider-shanghai.gov.cn");
+require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
+
+class SpiderShangHaiGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -16,16 +19,14 @@ class SpiderShangHaiGov
      * @var array
      */
     static $SeedConf = array(
-        "http://www.ndrc.gov.cn/zcfb/zcfbtz/index.html",
-        "http://www.ndrc.gov.cn/zcfb/zcfbqt/index.html",
-        "http://www.ndrc.gov.cn/xzcf/index.html",
+        "http://www.shanghai.gov.cn/nw2/nw2314/nw2319/nw41149/nw41150/index.html",
+        "http://www.shanghai.gov.cn/nw2/nw2314/nw2319/nw12344/index.html"
     );
 
     protected $ContentHandlers = array(
-        "#http://www.ndrc.gov.cn/zcfb/(zcfbtz|zcfbqt)/index([_0-9]+)?\.html# i" => "handleListPage",
-        "#http://www.ndrc.gov.cn/xzcf/index([_0-9]+)?\.html# i" => "handleListPage",
-        "#http://www.ndrc.gov.cn/zcfb/(zcfbqt|zcfbtz)/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
-        "#/t[0-9]+_[0-9]+\.html# i"  => "handleDetailPage",
+        "#http://service\.shanghai\.gov\.cn/pagemore/iframePagerIndex1\.aspx\?page=[0-9]+# i",
+        "#http://www\.shanghai\.gov\.cn/nw2/nw2314/nw2319/nw12344/index[0-9]+\.html# i" => "handleListPage",
+        "#/u[0-9]+aw[0-9]+\.html# i" => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 

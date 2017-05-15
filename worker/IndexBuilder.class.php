@@ -6,8 +6,11 @@
  * Date: 17/4/27
  * Time: PM6:23
  */
+ini_set("memory_limit", "512M");
 define("CRAWLER_NAME", "index-builder");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
+require_once(APP_PATH . '/../../phplib/PHPWord/bootstrap.php');
+require_once(APP_PATH . '/../../phplib/xunsearch/sdk/php/lib/XS.php');
 
 class IndexBuilder
 {
@@ -17,44 +20,67 @@ class IndexBuilder
 
     public function run()
     {
-        $where = array(
-            'type' => DaoSpiderlLawBase::TYPE_HTML_FRAGMENT,
-        );
-
-        $sort = array("ctime"=>'DESC');
+        $sort = array("id"=>'ASC');
 
         $page = 1;
-        $pagesize = 100;
-
-        // doc_id as id, title,     content, doc_ori_no, t_valid, t_invalid, publish_time, author, tags, url as craw_url
+        $pagesize = 2000;
 
         $pages = 1;
-        file_put_contents(self::JSON_FILE_NAME, "");
+
+        $xs = new XS("xlaw");
+
+        $id = 0;
+        if (file_exists("./indexed_id.txt")) {
+            $id = intval(file_get_contents("./indexed_id.txt"));
+        }
+
         for ($i=1; $i<=$pages; $i++) {
-            $res = DaoXlegalLawContentRecord::getInstance()->search($where, $sort, $page, $pagesize);
+            $res = DaoXlegalLawContentRecord::getInstance()->search(
+                array('id'=>array(
+                    'op'    => '>',
+                    'value' => $id,
+                ),'type'=>DaoSpiderlLawBase::TYPE_DOC),
+                $sort,
+                $i,
+                $pagesize);
+
             if ($pages === 1) {
-                $pages = $res['pages'];
+                $pages = intval($res['pages']);
             }
 
             if (!empty($res['data']) && is_array($res['data'])) {
                 foreach ($res['data'] as $item) {
-                    $record = array();
-                    $record['id'] = $item['doc_id'];
-                    $record['title'] = $item['title'];
-                    $record['content'] = strip_tags(gzinflate(base64_decode($item['content'])));
-                    $record['doc_ori_no'] = $item['doc_ori_no'];
-                    $record['t_valid'] = $item['t_valid'];
-                    $record['t_invalid'] = $item['t_invalid'];
-                    $record['publish_time'] = $item['publish_time'];
-                    $record['author'] = $item['author'];
-                    $record['tags'] = $item['tags'];
-                    $record['craw_url'] = $item['url'];
+                    try {
+                        if (IndexManager::parse_data($item) === false) {
+                            continue;
+                        }
+                        $record = array();
+                        $record['id'] = $item['doc_id'];
+                        $record['title'] = $item['title'];
+                        $record['content'] = $item['content'];
+                        $record['doc_ori_no'] = $item['doc_ori_no'];
+                        $record['t_valid'] = $item['t_valid'];
+                        $record['t_invalid'] = $item['t_invalid'];
+                        $record['publish_time'] = $item['publish_time'];
+                        $record['author'] = $item['author'];
+                        $record['tags'] = $item['tags'];
+                        $record['craw_url'] = $item['url'];
 
-                    file_put_contents(self::JSON_FILE_NAME, json_encode($record, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+                        if (gsettings()->debug) {
+                            var_dump($record);
+                            exit(0);
+                        }
+
+                        $document = new XSDocument($record, 'utf-8');
+                        $xs->getIndex()->add($document);
+                        echo "insert {$item['id']}" . PHP_EOL;
+                        file_put_contents("./indexed_id.txt", $item['id']);
+                    } catch (Exception $e) {
+                        echo $e->getMessage() . PHP_EOL;
+                        continue;
+                    }
                 }
             }
         }
-
-        exec("/home/work/php/bin/php -c /home/work/php/etc/php.ini /mnt/open-xdp/xunsearch/sdk/php/util/Indexer.php --rebuild --source=json xlaw " . self::JSON_FILE_NAME);
     }
 }

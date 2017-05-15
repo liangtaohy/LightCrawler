@@ -24,7 +24,6 @@ class SpiderBjdaGovCn extends SpiderFrame
 
     protected $ContentHandlers = array(
         "#http://www\.bjda\.gov\.cn/bjfda/gzdt[0-9]+/tzgg/gg/index\.html# i" => "handleListPage",
-        "#http://www\.bjjrj\.gov\.cn/tztg/c44-a[0-9]+\.html# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
