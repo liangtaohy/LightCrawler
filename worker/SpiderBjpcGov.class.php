@@ -7,7 +7,7 @@
  * Date: 17/5/5
  * Time: PM5:06
  */
-define("CRAWLER_NAME", md5("spider-bjpc.gov.cn"));
+define("CRAWLER_NAME", "spider-bjpc.gov.cn");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderBjpcGov extends SpiderFrame

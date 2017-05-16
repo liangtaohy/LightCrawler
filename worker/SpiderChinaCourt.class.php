@@ -49,21 +49,8 @@ class SpiderChinaCourt extends SpiderFrame
      * @param PHPCrawlerDocumentInfo $DocInfo
      * @return bool
      */
-    protected function _thandleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
+    protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
-        // write raw data into local file system
-        $tmp = $this->storage_root . $this->raw_data_dir . '/' . date("Ymd");
-
-        if (!file_exists($tmp)) {
-            mkdir($tmp, 0777, true);
-        }
-
-        $tmp_file = $tmp . '/' . md5($DocInfo->url) . '.html';
-
-        file_put_contents($tmp_file, $DocInfo->url . "\n", FILE_APPEND);
-        file_put_contents($tmp_file, $DocInfo->content_type . "\n", FILE_APPEND);
-        file_put_contents($tmp_file, $DocInfo->source . "\n", FILE_APPEND);
-
         // remove \r\n (^M character)
         $patterns = array(
             chr(13),
@@ -199,8 +186,7 @@ class SpiderChinaCourt extends SpiderFrame
             exit(0);
         }
 
-        DaoXlegalLawContentRecord::getInstance()->insert($record);
-        return true;
+        return $record;
     }
 
     private function parseSummary($text)

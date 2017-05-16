@@ -39,7 +39,8 @@ class IndexBuilder
                 array('id'=>array(
                     'op'    => '>',
                     'value' => $id,
-                ),'type'=>DaoSpiderlLawBase::TYPE_DOC),
+                ),
+                    'type'=>DaoSpiderlLawBase::TYPE_DOC),
                 $sort,
                 $i,
                 $pagesize);

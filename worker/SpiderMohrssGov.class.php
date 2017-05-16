@@ -22,9 +22,9 @@ class SpiderMohrssGov extends SpiderFrame
     );
 
     protected $ContentHandlers = array(
-        "#http://www.mohrss.gov.cn/gkml/216/list([_0-9]+)?\.html# i"   => "handleListPage",
+        //"#http://www.mohrss.gov.cn/gkml/216/list([_0-9]+)?\.html# i"   => "handleListPage",
         "#http://www.mohrss.gov.cn/gkml/xxgk/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
-        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
+        "#/[0-9a-zA-Z_]+\.(doc|docx|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
