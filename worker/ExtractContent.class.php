@@ -152,7 +152,7 @@ class ExtractContent
     );
 
     public static $DefaultDocOriNoPatterns = array(
-        "/[\x{FF08}]?([\x{4e00}-\x{9fa5}]{2,20}?)[\[\x{3014}\x{3010}\(]([0-9]+)[\]\x{3015}\x{3011}\)][\x{7B2C}]?([0-9]+)\x{53F7}[\x{FF09}]?/u"
+        "/[\x{FF08}]?([\x{4e00}-\x{9fa5}]{2,20}?)[\x{FF08}\[\x{3014}\x{3010}\(]([0-9]+)[\x{FF09}\]\x{3015}\x{3011}\)][\x{7B2C}]?([0-9]+)\x{53F7}[\x{FF09}]?/u"
     );
 
     public static $DefaultNegPatterns = array(

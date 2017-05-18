@@ -303,7 +303,7 @@ class SpiderFrame extends PHPCrawler
         if (!empty($this->tag)) {
             $record->tags = $this->tag;
         }
-        
+
         $record->type = DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;
         $record->url = $extract->baseurl;
@@ -463,6 +463,11 @@ class SpiderFrame extends PHPCrawler
             echo "detail-url: " . json_encode($value, JSON_UNESCAPED_UNICODE) . PHP_EOL;
             DaoUrlCache::getInstance()->insert($value);
         }
+    }
+
+    protected function dumpNull(PHPCrawlerDocumentInfo $DocInfo)
+    {
+        return false;
     }
 
     public static function rand_float($min=0, $max=1){

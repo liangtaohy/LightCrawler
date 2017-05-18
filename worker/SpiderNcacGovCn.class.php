@@ -1,16 +1,16 @@
 <?php
 
 /**
- * 广东金融办公室
- * http://www.gdjrb.gov.cn/
+ * 国家版权局
+ * http://www.ncac.gov.cn/chinacopyright/channels/479.html
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/5/2
- * Time: PM3:28
+ * Date: 17/5/18
+ * Time: PM12:40
  */
-define("CRAWLER_NAME", "spider-gdjrb.gov");
+define("CRAWLER_NAME", "spider-ncac.gov.cn");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderGdjrbGov extends SpiderFrame
+class SpiderNcacGovCn extends SpiderFrame
 {
     const MAGIC = __CLASS__;
 
@@ -19,46 +19,49 @@ class SpiderGdjrbGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://www.gdjrb.gov.cn/index.php/regulation/dlist/type/1/effect_id/10.html",
+        "http://www.ncac.gov.cn/chinacopyright/channels/479.html"
     );
 
     protected $ContentHandlers = array(
-        "#http://www\.gdjrb\.gov\.cn/index\.php/regulation/dlist/type/1/effect_id/[0-9]\.html# i" => "void",
-        "#http://www\.gdjrb\.gov\.cn/index\.php/regulation/dlist/type/1/effect_id/[0-9]+/p/[0-9]+\.html# i" => "void",
-        "#http://www\.gdjrb\.gov\.cn/index.php/regulation/article/id/[0-9]+\.html# i"  => "handleDetailPage",
-        "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
+        "#http://www\.ncac\.gov\.cn/chinacopyright/contents/[0-9]+/[0-9]+\.html# i" => "handleDetailPage",
+        "#http://www\.ncac\.gov\.cn/chinacopyright/channels/(480|479|481|482|483|514|510|511|515|513)([0-9_]+)?\.html# i"   => "handleListPage",
+        "#/.*\.(doc|docx|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderGdjrbGov constructor.
+     * SpiderNcacGovCn constructor.
      */
     public function __construct()
     {
         parent::__construct();
     }
 
-    /**
-     * @param PHPCrawlerDocumentInfo $DocInfo
-     * @return bool|XlegalLawContentRecord
-     */
+    //span class="STYLE24"
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $source = $DocInfo->source;
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
 
+        $doc = $extract->getExtractor()->extractor->document();
+        $title = trim($doc->query("//span[@class='STYLE24']")->item(0)->nodeValue);
+
+        preg_match("#<td align=\"center\">&nbsp;([0-9]{4}-[0-9]{2}-[0-9]{2})# i", $DocInfo->source, $matches);
+        $publish_time = 0;
+        if (!empty($matches) && count($matches) > 1) {
+            $publish_time = strtotime($matches[1]);
+        }
         $extract->parse();
 
-        $content = $extract->getContent(true);
-
+        $content = $extract->getContent();
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
-        $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
+        $record->title = !empty($title) ? $title : (!empty($extract->title) ? $extract->title : $extract->guessTitle());
         $record->author = $extract->author;
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
-        $record->publish_time = $extract->publish_time;
+        $record->publish_time = !empty($publish_time) ? $publish_time : intval($extract->publish_time);
         $record->t_valid = $extract->t_valid;
         $record->t_invalid = $extract->t_invalid;
         $record->negs = implode(",", $extract->negs);
@@ -93,6 +96,14 @@ class SpiderGdjrbGov extends SpiderFrame
             $record->simhash = $simhash;
         }
 
+
+        if (!empty($this->author)) {
+            $record->author = $this->author;
+        }
+
+        if (!empty($this->tag)) {
+            $record->tags = $this->tag;
+        }
 
         $record->type = DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;

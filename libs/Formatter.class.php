@@ -44,10 +44,14 @@ class Formatter
                 $count = substr_count($str, '../');
                 if ($count>0) {
                     for ($i=0; $i<$count; $i++) {
-                        array_pop($part);
+                        $p = array_pop($part);
+                        if (empty($p)) {
+                            array_pop($part);
+                        }
                     }
                 }
                 $path = implode('/', $part);
+
                 $str = str_replace(array('../','./'), '', $str);
                 $path = $path=='' ? '/' : '/'.trim($path,'/').'/';
                 return $scheme.'://'.$host.$path.$str;
