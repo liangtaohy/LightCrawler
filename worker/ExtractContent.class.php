@@ -203,6 +203,43 @@ class ExtractContent
         "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|docx|pdf|txt|xls|ceb)/ui",
     );
 
+    public static function UnifyPublishtime($publish_time)
+    {
+        if (empty($publish_time)) {
+            return 0;
+        }
+        
+        if (!empty($publish_time)) {
+            $matches = array();
+            preg_match("/([0-9]{4})[\x{5E74}\-]([0-9]{1,2})[\x{6708}\-]([0-9]{1,2})[\x{65E5}]?.*/u", $publish_time, $matches);
+            if (!empty($matches) && count($matches) > 3) {
+                $publish_time = strtotime(sprintf("%s-%s-%s", $matches[1], $matches[2], $matches[3]));
+            }
+        }
+
+        return $publish_time;
+    }
+
+    /**
+     * @param $doc_ori_no
+     * @return string
+     */
+    public static function UnifyDocOriNo($doc_ori_no)
+    {
+        if (empty($doc_ori_no)) {
+            return "";
+        }
+
+        // doc_ori_no归一化
+        if (!empty($doc_ori_no)) {
+            preg_match(self::$DefaultDocOriNoPatterns[0], $doc_ori_no, $matches);
+            if (!empty($matches) && count($matches) > 3) {
+                $doc_ori_no = sprintf("%s(%s)%s号", $matches[1], $matches[2], $matches[3]);
+            }
+        }
+        return $doc_ori_no;
+    }
+
     /**
      * ExtractContent constructor.
      * @param $url

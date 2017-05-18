@@ -54,7 +54,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
         "#http://www.saic.gov.cn/fw/bsdt/gg/jzzf/index(_[0-9]+)?.html# i"   => "handleListPage",
         "#http://gkml.saic.gov.cn/auto[0-9]+/auto[0-9]+/[0-9]+/t[0-9]+_[0-9]+\.html# i"   => "handleDetailPage",
         "#http://www.saic.gov.cn/gkml/auto[0-9]+/auto[0-9]+/[0-9]+/t[0-9]+_[0-9]+\.html# i"    => "handleDetailPage",
-        //"#/t[0-9]+_[0-9]+\.html# i"  => "handleDetailPage",
+        "#/[0-9]{6}/t[0-9]+_[0-9]+\.html# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
@@ -77,7 +77,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
         );
 
         $pagesPatterns = array(
-            "#var countPage = [\"]?[0-9]+[\"]?# i",
+            "#var countPage = [\"]?([0-9]+)[\"]?# i",
         );
 
         $total = 0;
