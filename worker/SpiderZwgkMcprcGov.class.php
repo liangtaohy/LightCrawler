@@ -7,7 +7,7 @@
  * Date: 17/4/27
  * Time: PM4:50
  */
-define("CRAWLER_NAME", md5("spider-zwgk.mcprc.gov"));
+define("CRAWLER_NAME", "spider-zwgk.mcprc.gov");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderZwgkMcprcGov extends SpiderFrame

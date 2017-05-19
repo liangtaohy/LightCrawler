@@ -242,7 +242,7 @@ class SpiderFrame extends PHPCrawler
 
     /**
      * @param PHPCrawlerDocumentInfo $DocInfo
-     * @return bool|XlegalLawContentRecord
+     * @return XlegalLawContentRecord
      */
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
