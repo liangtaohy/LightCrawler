@@ -423,7 +423,7 @@ class SpiderFrame extends PHPCrawler
             unlink($tmp);
 
         if (defined('CRAWLER_NAME') && !empty(CRAWLER_NAME)) {
-            DaoUrlCache::getInstance()->cleanup(CRAWLER_NAME);
+            //DaoUrlCache::getInstance()->cleanup(CRAWLER_NAME);
         }
         
         $report = parent::getProcessReport();

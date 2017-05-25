@@ -316,17 +316,17 @@ class PHPCrawler
     else if ($this->url_cache_type == PHPCrawlerUrlCacheTypes::URLCACHE_MYSQL)
       $this->LinkCache = new PHPCrawlerMySqlUrlCache(
           array(
-              'host'  => '127.0.0.1',
+              'host'  => '10.51.53.235',
               'port'  => 3306,
             'dbname'  => 'spider',
-              'user'  => 'root',
-              'password'      => 'Tncr6dAuibF677gi',
+              'user'  => 'spider',
+              'password'      => 'n7TvYI5wlcEF9jpw',
               'charset'       => 'utf8',
               'connect_timeout'   => 0,
               'autocommit'    => 1,
               'default'  => array( // 默认机房
                   array(
-                      'host'  => '127.0.0.1',
+                      'host'  => '10.51.53.235',
                       'port'  => 3306,
                   ),
               ),

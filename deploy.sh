@@ -17,5 +17,5 @@ find ./ -type d -name .gitignore|xargs -i rm -rf {}
 
 tar cvzf $PRO_FILE *
 
-scp $PRO_FILE work@xman.legal:/home/work/liangtao/
-ssh work@xman.legal "cd /home/work/liangtao && tar -zxvf "${PRO_FILE}" -C /home/work/xdp/"
+scp $PRO_FILE work@60.205.169.24:/home/work/liangtao/
+ssh work@60.205.169.24 "cd /home/work/liangtao && tar -zxvf "${PRO_FILE}" -C /home/work/xdp/"

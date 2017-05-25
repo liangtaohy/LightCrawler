@@ -7,12 +7,13 @@
  * Date: 17/4/27
  * Time: PM12:34
  */
-define("CRAWLER_NAME", md5("spider-aqsiq.gov"));
+define("CRAWLER_NAME", "spider-aqsiq.gov");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderAqsiqGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     /**
      * Seed Conf
@@ -23,6 +24,7 @@ class SpiderAqsiqGov extends SpiderFrame
     );
 
     protected $ContentHandlers = array(
+        "#http://www.aqsiq.gov.cn/xxgk_13386/zvfg/flfg/# i" => "handleListPage",
         "#/[0-9]{6}/t[0-9]{6,8}_[0-9]+\.htm# i"    => "handleDetailPage",
         "#http://www\.aqsiq\.gov\.cn/xxgk_13386/# i"   => "handleListPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls|docx)# i" => "handleAttachment",
@@ -34,6 +36,67 @@ class SpiderAqsiqGov extends SpiderFrame
     public function __construct()
     {
         parent::__construct();
+
+        $this->_pergecache();
+    }
+
+    protected function _pergecache()
+    {
+        $page = 1;
+        $pagesize = 10000;
+
+        $where = array(
+            "spider"    => md5(CRAWLER_NAME),
+            "processed" => 1,
+            "in_process"    => 0,
+        );
+
+        $sort = array(
+            "id" => "ASC"
+        );
+
+        $fields = array(
+            "id",
+            "url_rebuild",
+            "distinct_hash",
+        );
+
+        $res = $url_cache = DaoUrlCache::getInstance()->search_data($where, $sort, $page, $pagesize, $fields);
+
+        $lists = array();
+        foreach ($res['data'] as $re) {
+            $url = $re['url_rebuild'];
+            foreach ($this->ContentHandlers as $pattern => $contentHandler) {
+                if ($contentHandler === "handleListPage" || $contentHandler === "void") {
+                    if (preg_match($pattern, $url)) {
+                        if (!isset($lists[$pattern])) {
+                            $lists[$pattern] = array();
+                        }
+
+                        $lists[$pattern][] = $re;
+                    }
+                }
+            }
+        }
+
+        $ids = array();
+        foreach ($lists as $pattern => $list) {
+            $total = ceil(count($list) / 3);
+            if ($total > self::MAX_PAGE) {
+                $total = self::MAX_PAGE;
+            }
+
+            for ($i = 0; $i < $total; $i++) {
+                $u = $list[$i];
+                $ids[] = $u['id'];
+            }
+        }
+
+        DaoUrlCache::getInstance()->pergeCacheByIds($ids);
+        if (gsettings()->debug) {
+            var_dump($ids);
+            exit(0);
+        }
     }
 
     /**

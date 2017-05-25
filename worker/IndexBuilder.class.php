@@ -40,7 +40,10 @@ class IndexBuilder
                     'op'    => '>',
                     'value' => $id,
                 ),
-                    'type'=>DaoSpiderlLawBase::TYPE_DOC),
+                    'type'=> array(
+                        'op'    => 'IN',
+                        'value' => array(DaoSpiderlLawBase::TYPE_TXT, DaoSpiderlLawBase::TYPE_HTML_FRAGMENT)
+                    )),
                 $sort,
                 $i,
                 $pagesize);
