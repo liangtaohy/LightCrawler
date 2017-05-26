@@ -14,6 +14,7 @@ class SpiderYingkeLawyerCom
     const MAGIC = __CLASS__;
     const GET_MENU_DATA_AJAX_URL = "/Ajax/Nodes/NodesAjax.ashx";
     const HOST = "http://www.yingkelawyer.com";
+    const MAX_PAGE = 10;
 
     /**
      * Seed Conf
@@ -263,6 +264,10 @@ class SpiderYingkeLawyerCom
                 $page = $this->caseList($query_params['tN'], $menu, $page->pageIndex, $cookies);
                 if (empty($page)) {
                     $flag = false;
+                }
+
+                if ($page->pageIndex > self::MAX_PAGE) {
+                    exit(0);
                 }
             } while ($flag);
 

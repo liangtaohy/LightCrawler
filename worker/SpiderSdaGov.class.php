@@ -12,6 +12,7 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 class SpiderSdaGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     const BASE_URL = "http://www.sda.gov.cn/WS01/CL0463/";
 
@@ -137,7 +138,7 @@ class SpiderSdaGov extends SpiderFrame
                 }
             }
 
-            var_dump($records);
+            //var_dump($records);
             $this->insert2urls($records);
         }
 
@@ -204,7 +205,7 @@ class SpiderSdaGov extends SpiderFrame
                 }
             }
 
-            for ($i = 2; $i <= $total; $i++) {
+            for ($i = 2; $i <= self::MAX_PAGE; $i++) {
                 $pageNum++;
                 $pageUrls[] = $this->goSearch2('http://www.sda.gov.cn/wbpp/generalsearch?sort=true&sortId=CTIME&record=10&columnid=CLID|OPTIONS_VALUE10|CTITLE|CTIME2&relation=MUST|MUST|MUST|MUST',$this->classStr,'Region','4','4','CLID|OPTIONS_VALUE10|CTITLE|CTIME2',$this->CLID . '|' . $this->OPTIONS_VALUE10 . '|' . $this->CTITLE . '|' . $this->CTIME2, $pageNum);
             }
@@ -213,6 +214,7 @@ class SpiderSdaGov extends SpiderFrame
 
         if (gsettings()->debug) {
             var_dump($pageUrls);
+            exit(0);
         }
         return $pageUrls;
     }

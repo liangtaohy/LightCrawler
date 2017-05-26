@@ -13,6 +13,7 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 class SpiderGinfoMohurdGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
     /**
      * Seed Conf
      * @var array
@@ -32,6 +33,12 @@ class SpiderGinfoMohurdGov extends SpiderFrame
     public function __construct()
     {
         parent::__construct();
+        $this->_pergecache();
+    }
+
+    protected function _pergecache()
+    {
+        DaoUrlCache::getInstance()->pergecacheByUrlMd5(md5("http://ginfo.mohurd.gov.cn/"));
     }
 
     // javascript:__doPostBack(&#39;ctl00$lbtPageDown&#39;,&#39;&#39;)
@@ -79,7 +86,7 @@ class SpiderGinfoMohurdGov extends SpiderFrame
 
         $countPage = 1;
 
-        for($i=1;$i<=$countPage;$i++) {
+        for($i=1;$i<=self::MAX_PAGE;$i++) {
             preg_match('#javascript:__doPostBack\((.*?)\)# i', $DocInfo->source, $matches);
             $doPostBack = '';
             if (!empty($matches) && count($matches) > 1) {

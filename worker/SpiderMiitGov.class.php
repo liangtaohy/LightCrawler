@@ -12,6 +12,7 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 class SpiderMiitGov
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36";
 
@@ -45,7 +46,7 @@ class SpiderMiitGov
         $cookies = $r->getCookies();
 
         $pages = 1;
-        for ($i = 1; $i <= $pages; $i++) {
+        for ($i = 1; $i <= self::MAX_PAGE; $i++) {
             self::$Queries->goPage = $i;
             $post_params = array(
                 "params"    => json_encode(self::$Queries),

@@ -227,6 +227,7 @@ class SpiderGkmlSaicGov extends SpiderFrame
         $prefix = substr($DocInfo->url, 0, $p + 1);
 
         $pages = array();
+        
         for ($i = 1; $i <= $pager['pages']; $i++)
         {
             if($i == 1){

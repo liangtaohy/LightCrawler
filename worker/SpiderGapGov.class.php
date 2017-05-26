@@ -14,6 +14,7 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 class SpiderGapGov
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     const USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.87 Safari/537.36";
 
@@ -125,7 +126,7 @@ class SpiderGapGov
                 if (preg_match("/\x{5171}([0-9]+)\x{9875}/u", $body, $pageNums) !== false) {
                     if (count($pageNums) > 1) {
                         $pageNums = intval($pageNums[1]);
-                        for ($i=1; $i<=$pageNums; $i++) {
+                        for ($i=1; $i<=self::MAX_PAGE; $i++) {
                             $queries['timeStamp'] = Utils::microTime();
                             $queries['pageNum'] = $i;
 

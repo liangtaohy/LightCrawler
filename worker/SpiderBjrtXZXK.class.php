@@ -13,6 +13,7 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 class SpiderBjrtXZXK extends SpiderFrame
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     /**
      * Seed Conf
@@ -36,6 +37,63 @@ class SpiderBjrtXZXK extends SpiderFrame
         parent::__construct();
     }
 
+    protected function _pergecache()
+    {
+        $page = 1;
+        $pagesize = 10000;
+
+        $where = array(
+            "spider"    => md5(CRAWLER_NAME),
+            "processed" => 1,
+            "in_process"    => 0,
+        );
+
+        $sort = array(
+            "id" => "ASC"
+        );
+
+        $fields = array(
+            "id",
+            "url_rebuild",
+            "distinct_hash",
+        );
+
+        $res = $url_cache = DaoUrlCache::getInstance()->search_data($where, $sort, $page, $pagesize, $fields);
+
+        $pages = $res['pages'];
+
+        $lists = array();
+        foreach ($res['data'] as $re) {
+            $url = $re['url_rebuild'];
+            foreach ($this->ContentHandlers as $pattern => $contentHandler) {
+                if ($contentHandler === "handleListPage" || $contentHandler === "void") {
+                    if (preg_match($pattern, $url)) {
+                        if (!isset($lists[$pattern])) {
+                            $lists[$pattern] = array();
+                        }
+
+                        $lists[$pattern][] = $re;
+                    }
+                }
+            }
+        }
+
+        $ids = array();
+        foreach ($lists as $pattern => $list) {
+            $total = ceil(count($list) / 3);
+            if ($total > self::MAX_PAGE) {
+                $total = self::MAX_PAGE;
+            }
+
+            for ($i = 0; $i < $total; $i++) {
+                $u = $list[$i];
+                $ids[] = $u['id'];
+            }
+        }
+
+        DaoUrlCache::getInstance()->pergeCacheByIds($ids);
+    }
+
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $detail = "http://218.246.104.101:8090/gdwzyy/xzXkQueryController.do?view&id=%s";
@@ -51,7 +109,7 @@ class SpiderBjrtXZXK extends SpiderFrame
         $page = 1;
         $pages = 1;
 
-        while($page <= $pages) {
+        while($page <= self::MAX_PAGE) {
             $postParams = array(
                 "page"  => $page,
                 "rows"  => $rows,

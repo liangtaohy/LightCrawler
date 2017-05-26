@@ -13,13 +13,14 @@ require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 class SpiderCdbComCn extends SpiderFrame
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     /**
      * Seed Conf
      * @var array
      */
     static $SeedConf = array(
-        "http://www.cdb.com.cn/xwzx/xxgg/fzgg/"
+        "http://www.cdb.com.cn/xwzx/xxgg/fzgg/",
     );
 
     /**
@@ -27,6 +28,7 @@ class SpiderCdbComCn extends SpiderFrame
      */
     protected $ContentHandlers = array(
         "#/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i"    => "handleDetailPage",
+        "#http://www\.cdb\.com\.cn/xwzx/xxgg/fzgg/(index_[0-9]+\.html)?# i" => "handleListPage",
         "#/.*\.(pdf|docx|doc|txt|xls)# i"   => "handleAttachment"
     );
 
@@ -40,6 +42,7 @@ class SpiderCdbComCn extends SpiderFrame
     public function __construct()
     {
         parent::__construct();
+        $this->_pergecache();
     }
 
     /**
@@ -56,6 +59,67 @@ class SpiderCdbComCn extends SpiderFrame
         $nextPage = $_nCurrIndex + 1;
 
         return "index" . "_" . $nextPage . "." . "html";
+    }
+
+    protected function _pergecache()
+    {
+        $page = 1;
+        $pagesize = 10000;
+
+        $where = array(
+            "spider"    => md5(CRAWLER_NAME),
+            "processed" => 1,
+            "in_process"    => 0,
+        );
+
+        $sort = array(
+            "id" => "ASC"
+        );
+
+        $fields = array(
+            "id",
+            "url_rebuild",
+            "distinct_hash",
+        );
+
+        $res = $url_cache = DaoUrlCache::getInstance()->search_data($where, $sort, $page, $pagesize, $fields);
+
+        $pages = $res['pages'];
+
+        $lists = array();
+        foreach ($res['data'] as $re) {
+            $url = $re['url_rebuild'];
+            foreach ($this->ContentHandlers as $pattern => $contentHandler) {
+                if ($contentHandler === "handleListPage" || $contentHandler === "void") {
+                    if (preg_match($pattern, $url)) {
+                        if (!isset($lists[$pattern])) {
+                            $lists[$pattern] = array();
+                        }
+
+                        $lists[$pattern][] = $re;
+                    }
+                }
+            }
+        }
+
+        $ids = array();
+        foreach ($lists as $pattern => $list) {
+            $total = ceil(count($list) / 3);
+            if ($total > self::MAX_PAGE) {
+                $total = self::MAX_PAGE;
+            }
+
+            for ($i = 0; $i < $total; $i++) {
+                $u = $list[$i];
+                $ids[] = $u['id'];
+            }
+        }
+
+        if (gsettings()->debug) {
+            var_dump($ids);
+            exit(0);
+        }
+        DaoUrlCache::getInstance()->pergeCacheByIds($ids);
     }
 
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)

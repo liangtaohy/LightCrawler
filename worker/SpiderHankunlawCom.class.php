@@ -18,6 +18,8 @@ class SpiderHankunlawCom
     const AJAX_POST_INFO_LIST = "http://www.hankunlaw.com/newsAndInsight/getInsightInfoList.do";
 
     const ATTACHMENT_PREFIX = "http://www.hankunlaw.com/downloadfile/newsAndInsights/%s.pdf";
+
+    const MAX_PAGE = 3;
     /**
      * Seed Conf
      * @var array
@@ -27,6 +29,7 @@ class SpiderHankunlawCom
     );
 
     protected $ContentHandlers = array(
+        "#http://www\.hankunlaw\.com/newsAndInsights/newsDetail\.html\?id=[0-9a-z]# i"  => "handleDetailPage",
         "#/[0-9a-zA-Z_]+\.(doc|pdf|txt|xls)# i" => "handleAttachment",
     );
 
@@ -52,7 +55,7 @@ class SpiderHankunlawCom
             'pageNum'   => 10,
         );
 
-        while ($page < $pageCount) {
+        while ($page < self::MAX_PAGE) {
             $url = self::AJAX_POST_INFO_LIST;
 
             $res = bdHttpRequest::post($url, $params, array(), array("User-Agent"=>SpiderFrame::USER_AGENT, "Cookie"   => "safedog-flow-item=F02FA4700D43562E324FF6B4A88573D4; JSESSIONID=91B5F241B8A48F84C130DEE19A8FF067.tomcat1"));

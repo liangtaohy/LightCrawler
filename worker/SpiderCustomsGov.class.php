@@ -7,12 +7,13 @@
  * Date: 17/5/2
  * Time: PM10:53
  */
-define("CRAWLER_NAME", md5("spider-customs.gov"));
+define("CRAWLER_NAME", "spider-customs.gov");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderCustomsGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
+    const MAX_PAGE = 10;
 
     /**
      * Seed Conf
@@ -40,6 +41,68 @@ class SpiderCustomsGov extends SpiderFrame
     public function __construct()
     {
         parent::__construct();
+        $this->_pergecache();
+    }
+
+    protected function _pergecache()
+    {
+        $page = 1;
+        $pagesize = 10000;
+
+        $where = array(
+            "spider"    => md5(CRAWLER_NAME),
+            "processed" => 1,
+            "in_process"    => 0,
+        );
+
+        $sort = array(
+            "id" => "ASC"
+        );
+
+        $fields = array(
+            "id",
+            "url_rebuild",
+            "distinct_hash",
+        );
+
+        $res = $url_cache = DaoUrlCache::getInstance()->search_data($where, $sort, $page, $pagesize, $fields);
+
+        $pages = $res['pages'];
+
+        $lists = array();
+        foreach ($res['data'] as $re) {
+            $url = $re['url_rebuild'];
+            foreach ($this->ContentHandlers as $pattern => $contentHandler) {
+                if ($contentHandler === "handleListPage" || $contentHandler === "void") {
+                    if (preg_match($pattern, $url)) {
+                        if (!isset($lists[$pattern])) {
+                            $lists[$pattern] = array();
+                        }
+
+                        $lists[$pattern][] = $re;
+                    }
+                }
+            }
+        }
+
+        $ids = array();
+        foreach ($lists as $pattern => $list) {
+            $total = ceil(count($list) / 3);
+            if ($total > self::MAX_PAGE) {
+                $total = self::MAX_PAGE;
+            }
+
+            for ($i = 0; $i < $total; $i++) {
+                $u = $list[$i];
+                $ids[] = $u['id'];
+            }
+        }
+
+        if (gsettings()->debug) {
+            var_dump($ids);
+            exit(0);
+        }
+        DaoUrlCache::getInstance()->pergeCacheByIds($ids);
     }
 
     // x6D77;&#x5173;&#x884C;&#x653F;&#x5904;&#x7F5A;&#x51B3;&#x5B9A;&#x4E66;

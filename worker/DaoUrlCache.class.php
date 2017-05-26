@@ -138,6 +138,14 @@ class DaoUrlCache extends DaoBase
 
     /**
      * @param $url_md5
+     */
+    public function pergecacheByUrlMd5($url_md5)
+    {
+        $this->db->update("UPDATE urls SET in_process=0, processed=0 WHERE distinct_hash='{$url_md5}'");
+    }
+
+    /**
+     * @param $url_md5
      * @return bool
      */
     public function deleteByUrlMd5($url_md5)
