@@ -96,6 +96,11 @@ class SpiderGovCnZhengce extends SpiderFrame
         }
 
         DaoUrlCache::getInstance()->pergeCacheByIds($ids);
+
+        foreach (self::$SeedConf as $item) {
+            $md5_str = md5($item);
+            DaoUrlCache::getInstance()->pergecacheByUrlMd5($md5_str);
+        }
     }
 
     /**
