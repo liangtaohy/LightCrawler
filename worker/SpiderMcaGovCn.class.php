@@ -1,16 +1,17 @@
 <?php
 
 /**
- * 商务部公开目录
- * http://file.mofcom.gov.cn/search.shtml?class=01
+ * 民政部
+ * http://xxgk.mca.gov.cn:8081/newgips/gipsSearch?pageSize=20
+ *
  * User: Liang Tao (liangtaohy@163.com)
- * Date: 17/4/24
- * Time: AM10:20
+ * Date: 17/6/8
+ * Time: AM11:39
  */
-define("CRAWLER_NAME", "spider-mofcom.gov.cn");
+define("CRAWLER_NAME", "spider-xxgk.mca.gov.cn:8081");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
-class SpiderMofcomGov extends SpiderFrame
+class SpiderMcaGovCn extends SpiderFrame
 {
     const MAGIC = __CLASS__;
     const MAX_PAGE = 10;
@@ -20,17 +21,18 @@ class SpiderMofcomGov extends SpiderFrame
      * @var array
      */
     static $SeedConf = array(
-        "http://file.mofcom.gov.cn/",
+        "http://xxgk.mca.gov.cn:8081/newgips/gipsSearch?pageSize=20",
     );
 
     protected $ContentHandlers = array(
-        "#http://file\.mofcom\.gov\.cn/search\.shtml\?class=[0-9]+# i" => "handleListPage",
-        "#http://file\.mofcom\.gov\.cn/article/gkml/[0-9]{6}/[0-9]+\.shtml# i"  => "handleDetailPage",
-        "#/[0-9a-zA-Z_]+\.(doc|docx|pdf|txt|xls)# i" => "handleAttachment",
+        "#http://xxgk\.mca\.gov\.cn:8081/newgips/gipsSearch\?pageSize=20# i" => "handleListPage",
+        "#http://xxgk\.mca\.gov\.cn:8081/newgips/gipsSearch\?curPage=[0-9]+&pageSize=20# i" => "handleListPage",
+        "#http://xxgk\.mca\.gov\.cn:8081/newgips/contentSearch\?id=[0-9]+# i"  => "handleDetailPage",
+        "#/.*\.(doc|docx|pdf|txt|xls)# i" => "handleAttachment",
     );
 
     /**
-     * SpiderMofcomGov constructor.
+     * SpiderKwmCom constructor.
      */
     public function __construct()
     {
@@ -40,40 +42,7 @@ class SpiderMofcomGov extends SpiderFrame
 
     protected function _pergecache()
     {
-        DaoUrlCache::getInstance()->cleanup(CRAWLER_NAME);
-    }
-
-    /**
-     * @param PHPCrawlerDocumentInfo $DocInfo
-     * @return array|bool
-     */
-    public function computePages(PHPCrawlerDocumentInfo $DocInfo)
-    {
-        $pagesPatterns = array(
-            "#var maxpage=[\"]?([0-9]+)?[\"]?;# i"
-        );
-
-        $pages = 0;
-
-        foreach ($pagesPatterns as $pagesPattern) {
-            $result = preg_match($pagesPattern, $DocInfo->source, $matches);
-            if (!empty($result) && !empty($matches) && is_array($matches)) {
-                $pages = intval($matches[1]);
-                break;
-            }
-            unset($matches);
-        }
-
-        if (empty($pages)) {
-            echo "FATAL get pages failed: " . $DocInfo->url . PHP_EOL;
-            return false;
-        }
-
-        $res = array();
-
-        $res['pages'] = intval($pages);
-
-        return $res;
+        //
     }
 
     /**
@@ -82,28 +51,11 @@ class SpiderMofcomGov extends SpiderFrame
      */
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
     {
-        $pager = $this->computePages($DocInfo);
-
-        $urlinfo = parse_url($DocInfo->url);
-
-        $queries = explode("&", $urlinfo['query']);
-        $q = array();
-        foreach ($queries as $query) {
-            $s = explode("=", $query);
-            if (count($s) == 2) {
-                $q[$s[0]] = $s[1];
-            } else {
-                $q[$s[0]] = '';
-            }
-        }
-
         $pages = array();
+        $url = "http://xxgk.mca.gov.cn:8081/newgips/gipsSearch?curPage=";
 
-        for ($i = 1; $i <= self::MAX_PAGE; $i++)
-        {
-            $q['pageNum'] = $i;
-            $query_str = http_build_query($q);
-            $pages[] = $urlinfo['scheme'] . "://" . $urlinfo['host'] . $urlinfo['path'] . "?" . $query_str;
+        for ($i = 1;$i<=66;$i++) {
+            $pages[] = $url . $i . "&pageSize=20";
         }
 
         if (gsettings()->debug) {
@@ -114,23 +66,20 @@ class SpiderMofcomGov extends SpiderFrame
         return $pages;
     }
 
-    /**
-     * @param PHPCrawlerDocumentInfo $DocInfo
-     * @return bool|XlegalLawContentRecord
-     */
     protected function _handleDetailPage(PHPCrawlerDocumentInfo $DocInfo)
     {
         $source = $DocInfo->source;
 
         $extract = new ExtractContent($DocInfo->url, $DocInfo->url, $source);
-
+        $doc = $extract->getExtractor()->extractor->document();
+        $title = trim($doc->query("//td[@class='gray16_20b']")->item(0)->nodeValue);
         $extract->parse();
 
         $content = $extract->getContent();
         $c = preg_replace("/[\s\x{3000}]+/u", "", $content);
         $record = new XlegalLawContentRecord();
         $record->doc_id = md5($c);
-        $record->title = !empty($extract->title) ? $extract->title : $extract->guessTitle();
+        $record->title = !empty($title) ? $title : (!empty($extract->title) ? $extract->title : $extract->guessTitle());
         $record->author = $extract->author;
         $record->content = $content;
         $record->doc_ori_no = $extract->doc_ori_no;
@@ -170,6 +119,14 @@ class SpiderMofcomGov extends SpiderFrame
         }
 
 
+        if (!empty($this->author)) {
+            $record->author = $this->author;
+        }
+
+        if (!empty($this->tag)) {
+            $record->tags = $this->tag;
+        }
+
         $record->type = DaoSpiderlLawBase::TYPE_TXT;
         $record->status = 1;
         $record->url = $extract->baseurl;
@@ -180,7 +137,7 @@ class SpiderMofcomGov extends SpiderFrame
             //$index_blocks = $extract->indexBlock($extract->text);
             //echo implode("\n", $index_blocks) . PHP_EOL;
             var_dump($record);
-            return false;
+            exit(0);
         }
         echo "insert data: " . $record->doc_id . PHP_EOL;
         return $record;

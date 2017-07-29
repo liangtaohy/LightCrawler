@@ -112,8 +112,8 @@ class DaoUrlCache extends DaoBase
      */
     public function cleanup($spidername)
     {
-        $where = "spider='" . $spidername . "'";
-        $this->db->delete($this->_table_prefix . $this->_table_name, $where);
+        $where = "spider='" . md5($spidername) . "'";
+        $this->db->delete("urls", $where);
     }
 
     /**

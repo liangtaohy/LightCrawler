@@ -14,7 +14,7 @@
 
 $ext = ".class.php";
 
-$params = getopt('t:hds:n:');
+$params = getopt('t:hds:n:m:');
 
 $base = dirname(__FILE__);
 
@@ -23,6 +23,8 @@ $targetClass = isset($params['t']) && !empty($params['t']) ? trim($params['t']) 
 $seed = isset($params['s']) && !empty($params['s']) ? trim($params['s']) : '';
 
 $debug = isset($params['d']) ? true : false;
+
+$m = isset($params['m']) ? true : false;
 
 $numProcess = isset($params['n']) && !empty($params['n']) ? intval($params['n']) : 0;
 
@@ -64,7 +66,7 @@ if (!empty($numProcess)) {
     gsettings()->number_of_process = $numProcess;
 }
 
-if (gsettings()->debug == true) {
+if (gsettings()->debug == true || $m == true) {
     gsettings()->url_cache_type = URL_CACHE_IN_MEMORY;
     gsettings()->enable_resume = false;
     gsettings()->number_of_process = 1;

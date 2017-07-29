@@ -160,7 +160,7 @@ class ExtractContent
     );
 
     public static $DefaultSummaryWords = array(
-        "author"    => array("发布机构", "发文机关", "发布单位", "发文机构", "办文部门", "颁布单位"),
+        "author"    => array("发布机构", "发文机关", "发布单位", "发文机构", "办文部门", "颁布单位", "信息来源"),
         "title"     => array("公文名称", "信息名称", "标题", "名称",),
         "tags"      => array("效力级别","所属类别", "主题分类","信息类别","分类"),
         "index_ori_no"  => array("索引号","信息索引","索取号"),

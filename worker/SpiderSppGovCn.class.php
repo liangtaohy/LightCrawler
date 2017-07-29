@@ -43,6 +43,8 @@ class SpiderSppGovCn extends SpiderFrame
 
     protected function _pergecache()
     {
+        DaoUrlCache::getInstance()->cleanup(CRAWLER_NAME);
+        /*
         $page = 1;
         $pagesize = 10000;
 
@@ -97,7 +99,7 @@ class SpiderSppGovCn extends SpiderFrame
         if (gsettings()->debug) {
             var_dump($ids);
             exit(0);
-        }
+        }*/
     }
 
     protected function createPageHTML($url, $_nPageCount, $_nCurrIndex, $_sPageName, $_sPageExt)
@@ -106,6 +108,9 @@ class SpiderSppGovCn extends SpiderFrame
             return false;
         }
 
+        if ($_nCurrIndex > self::MAX_PAGE) {
+            return false;
+        }
         if($_nCurrIndex<$_nPageCount-1)
         {
             return Formatter::formaturl($url, $_sPageName . "_" . ($_nCurrIndex+1) . "." . $_sPageExt);

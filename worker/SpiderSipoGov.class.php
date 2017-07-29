@@ -7,30 +7,33 @@
  * Date: 17/5/3
  * Time: AM10:22
  */
-define("CRAWLER_NAME", md5("spider-sipo.gov"));
+define("CRAWLER_NAME", "spider-sipo.gov");
 require_once dirname(__FILE__) . "/../includes/lightcrawler.inc.php";
 
 class SpiderSipoGov extends SpiderFrame
 {
     const MAGIC = __CLASS__;
-    const MAX_PAGE = 10;
+    const MAX_PAGE = 5;
 
     /**
      * Seed Conf
      * @var array
      */
     static $SeedConf = array(
-        "http://www.sipo.gov.cn/",
-        "http://www.sipo.gov.cn/gwywj",
-        "http://www.sipo.gov.cn/tz",
-        "http://www.sipo.gov.cn/zscqgz",
-        "http://www.sipo.gov.cn/zwgg/jl/",
-        "http://www.sipo.gov.cn/zwgg/gg/",
+        "http://www.sipo.gov.cn/gwywj/index.html",
+        "http://www.sipo.gov.cn/tz/index.html",
+        "http://www.sipo.gov.cn/zscqgz/index.html",
+        "http://www.sipo.gov.cn/zwgg/jl/index.html",
+        "http://www.sipo.gov.cn/zwgg/gg/index.html",
     );
 
     protected $ContentHandlers = array(
-        "#/[0-9]+/t[0-9]+_[0-9]+\.html# i"  => "handleDetailPage",
-        "#http://www.sipo.gov.cn/(gwywj|tz|zscqgz|zwgg/jl/|zwgg/gg/)# i"  => "handleListPage",
+        "#/[0-9]{4}-[0-9]{2}/[0-9]{2}/content_[0-9]+\.htm# i"   => "handleDetailPage",
+        "#http://www\.sipo\.gov\.cn/zwgg/gg/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i" => "handleDetailPage",
+        "#http://www\.sipo\.gov\.cn/zwgg/jl/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i" => "handleDetailPage",
+        "#http://www\.sipo\.gov\.cn/zscqgz/[0-9]{4}/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i"  => "handleDetailPage",
+        "#http://www\.sipo\.gov\.cn/tz/[a-z]+/[0-9]{6}/t[0-9]{8}_[0-9]+\.html# i" => "handleDetailPage",
+        "#http://www.sipo.gov.cn/(gwywj|tz|zscqgz|zwgg/jl/|zwgg/gg/)/index([0-9_]+)?\.html# i"  => "handleListPage",
         "/\/[\x{4e00}-\x{9fa5}0-9a-zA-Z_\x{3010}\x{3011}\x{FF08}\x{FF09}\]\[]+\.(doc|pdf|txt|xls|ceb)/ui" => "handleAttachment",
     );
 
@@ -45,6 +48,8 @@ class SpiderSipoGov extends SpiderFrame
 
     protected function _pergecache()
     {
+        DaoUrlCache::getInstance()->cleanup(CRAWLER_NAME);
+        /*
         $page = 1;
         $pagesize = 10000;
 
@@ -99,7 +104,7 @@ class SpiderSipoGov extends SpiderFrame
         if (gsettings()->debug) {
             var_dump($ids);
             exit(0);
-        }
+        }*/
     }
 
     protected function _handleListPage(PHPCrawlerDocumentInfo $DocInfo)
@@ -132,6 +137,10 @@ class SpiderSipoGov extends SpiderFrame
         if (gsettings()->debug) {
             var_dump($pages);
             exit(0);
+        }
+
+        if ($nextPage > self::MAX_PAGE) {
+            return array();
         }
 
         return $pages;

@@ -25,9 +25,9 @@ class SpiderDyChinasarftGov extends SpiderFrame
     );
 
     protected $ContentHandlers = array(
-        "#http://dy.chinasarft.gov.cn/shanty.deploy/catalog.nsp\?id=[0-9a-z]+\&pageIndex=[0-9]+# i" => "handleListPage",
+        "#http://dy.chinasarft.gov.cn/shanty.deploy/catalog.nsp\?id=[0-9a-z]+\&pageIndex=(1|2|3|4|5|6|7|8|9|10)+# i" => "handleListPage",
         "#http://dy.chinasarft.gov.cn/shanty.deploy/blueprint.nsp\?id=[0-9a-z]+\&templateId=[0-9a-z]+# i" => 'handleDetailPage',
-        "#http://dy.chinasarft.gov.cn/html/www/catalog/(012996c02e8902354028815629965e99|012996c2a84002724028815629965e99|0129dffcccb1015d402881cd29de91ec)([\_0-9]+)?\.html# i"    => 'handleListPage',
+        "#http://dy.chinasarft.gov.cn/html/www/catalog/(012996c02e8902354028815629965e99|012996c2a84002724028815629965e99|0129dffcccb1015d402881cd29de91ec)(_[1|2|3|4|5|6|7|8|9|10])?\.html# i"    => 'handleListPage',
         "#http://dy.chinasarft.gov.cn/html/www/article/[0-9]{4}/[0-9a-z]+\.html# i"   => "handleDetailPage",
         "#/.*\.(doc|docx|pdf|txt|xls)# i" => "handleAttachment",
     );
@@ -43,63 +43,7 @@ class SpiderDyChinasarftGov extends SpiderFrame
 
     protected function _pergecache()
     {
-        $page = 1;
-        $pagesize = 10000;
-
-        $where = array(
-            "spider"    => md5(CRAWLER_NAME),
-            "processed" => 1,
-            "in_process"    => 0,
-        );
-
-        $sort = array(
-            "id" => "ASC"
-        );
-
-        $fields = array(
-            "id",
-            "url_rebuild",
-            "distinct_hash",
-        );
-
-        $res = $url_cache = DaoUrlCache::getInstance()->search_data($where, $sort, $page, $pagesize, $fields);
-
-        $pages = $res['pages'];
-
-        $lists = array();
-        foreach ($res['data'] as $re) {
-            $url = $re['url_rebuild'];
-            foreach ($this->ContentHandlers as $pattern => $contentHandler) {
-                if ($contentHandler === "handleListPage" || $contentHandler === "void") {
-                    if (preg_match($pattern, $url)) {
-                        if (!isset($lists[$pattern])) {
-                            $lists[$pattern] = array();
-                        }
-
-                        $lists[$pattern][] = $re;
-                    }
-                }
-            }
-        }
-
-        $ids = array();
-        foreach ($lists as $pattern => $list) {
-            $total = ceil(count($list) / 3);
-            if ($total > self::MAX_PAGE) {
-                $total = self::MAX_PAGE;
-            }
-
-            for ($i = 0; $i < $total; $i++) {
-                $u = $list[$i];
-                $ids[] = $u['id'];
-            }
-        }
-
-        if (gsettings()->debug) {
-            var_dump($ids);
-            exit(0);
-        }
-        DaoUrlCache::getInstance()->pergeCacheByIds($ids);
+        DaoUrlCache::getInstance()->cleanup(CRAWLER_NAME);
     }
 
     /**
